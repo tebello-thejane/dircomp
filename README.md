@@ -2,9 +2,13 @@
 
 Directory-scoped bash completions. A project drops a plain-text spec at
 `.completions/<command>`; typing that command and pressing TAB inside the
-project (or any subdirectory of it) completes from that spec. Outside the
-project, the command completes however it normally would — or not at all,
-if it isn't a real command out there.
+project (or any subdirectory of it) completes from that spec.
+
+Spec files are read as literal text. They are never sourced, and never passed
+through `compgen -W` or any other shell expansion, so a line like
+`$(rm -rf ~)` in a checked-out `.completions/` file is offered as a
+candidate string and nothing more. See *Scope and limits* below for what
+happens outside the project.
 
 No load step, no unload step, no environment variable, no direnv dependency.
 The completion machinery resolves the spec fresh from `$PWD` on every TAB.
@@ -12,7 +16,7 @@ The completion machinery resolves the spec fresh from `$PWD` on every TAB.
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v1.0.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.1/install.sh | bash
 ```
 
 Pin to a release tag, not `main` — a curl|bash install has no verification
@@ -32,7 +36,7 @@ Re-run the install command with a newer tag.
 ## Uninstall
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v1.0.0/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.1/uninstall.sh | bash
 ```
 
 Removes the bashrc block and `~/.local/share/dircomp`. Projects' own
@@ -49,6 +53,27 @@ $EDITOR .completions/mycommand
 ```
 
 See [SPEC.md](SPEC.md) for the file format.
+
+## Scope and limits
+
+dircomp hooks bash's *default* completion, the one consulted only for
+commands that have no completion of their own registered yet. Two
+consequences follow, and both are current behaviour, not plans:
+
+- **A command that already has a completion registered in your shell cannot
+  be overridden by a project spec.** `git`, `ssh`, and anything your fzf or
+  other integration wraps at startup fall in this group. A
+  `.completions/git` file is silently ignored.
+- **A project spec for a command whose native completion has not loaded yet
+  displaces that native completion for the rest of the shell session.**
+  Enter a project with `.completions/7z`, press TAB on `7z`, and `7z` will
+  complete from the spec inside the project and from plain filenames
+  outside it, instead of from bash-completion's own `7z` rules, until you
+  open a new shell.
+
+In practice dircomp fits commands that are *specific to the project*, such
+as a script under the project's own `bin/`. Using it to add per-project
+targets to a global tool is not yet supported.
 
 ## Requirements
 

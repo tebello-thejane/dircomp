@@ -15,7 +15,7 @@
 # ~/.local/share/dircomp/dircomp.bash and sourced from ~/.bashrc via one
 # guarded line — see that file for the install/update/uninstall story.
 
-DIRCOMP_VERSION="1.0.0"
+DIRCOMP_VERSION="0.1.1"
 DIRCOMP_SPEC_VERSION="1"   # bump only if the [section] grammar changes incompatibly
 
 _dircomp_find() {
@@ -37,17 +37,28 @@ _dircomp_section() {
 }
 
 _dircomp() {
-    local spec cur=${COMP_WORDS[COMP_CWORD]} sub prev words
+    local spec cur=${COMP_WORDS[COMP_CWORD]} sub prev section flagsec candidate
     spec=$(_dircomp_find "${COMP_WORDS[0]}") || { _minimal "$@"; return; }
     if (( COMP_CWORD == 1 )); then
-        words=$(_dircomp_section "$spec" "")
+        section=""
     else
         sub=${COMP_WORDS[1]}
         prev=${COMP_WORDS[COMP_CWORD - 1]}
-        [[ $prev == -* ]] && words=$(_dircomp_section "$spec" "$sub $prev")
-        [[ -z $words ]] && words=$(_dircomp_section "$spec" "$sub")
+        section=$sub
+        if [[ $prev == -* ]]; then
+            flagsec=$(_dircomp_section "$spec" "$sub $prev")
+            [[ -n $flagsec ]] && section="$sub $prev"
+        fi
     fi
-    COMPREPLY=($(compgen -W "$words" -- "$cur"))
+    # Literal prefix match, never `compgen -W`. Bash performs command
+    # substitution, parameter and arithmetic expansion on a -W word list, so
+    # feeding it spec-file text would let a committed .completions file run
+    # arbitrary commands on TAB. Quoting $cur and the array append also stops
+    # a literal `*` candidate being glob-expanded against the directory.
+    COMPREPLY=()
+    while IFS= read -r candidate; do
+        [[ $candidate == "$cur"* ]] && COMPREPLY+=("$candidate")
+    done < <(_dircomp_section "$spec" "$section")
 }
 
 _dircomp_load() {

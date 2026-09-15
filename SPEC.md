@@ -50,8 +50,9 @@ offers `label count`.
   `add` is a free-text label, don't offer flags there." It only distinguishes
   the first word, a subcommand's flags, and one flag's values.
 - No dynamic candidates (reading a file list, hitting an API). Static text
-  only, by design — this is what keeps the file safe to source-control and
-  never executed.
+  only, by design. The reader matches each line as a literal prefix and
+  never hands spec text to `compgen -W`, `eval`, `source`, or any other
+  expansion, so a committed spec cannot run commands on TAB.
 - Nesting is one level: `[subcommand --flag]`, not `[subcommand subsubcommand]`.
 
 Report a v2 need against the version in `lib/dircomp.bash`
