@@ -15,13 +15,15 @@
 # ~/.local/share/dircomp/dircomp.bash and sourced from ~/.bashrc via one
 # guarded line — see that file for the install/update/uninstall story.
 
-DIRCOMP_VERSION="0.1.1"
+DIRCOMP_VERSION="0.1.2"
 DIRCOMP_SPEC_VERSION="1"   # bump only if the [section] grammar changes incompatibly
 
 _dircomp_find() {
-    local d=$PWD
+    # Match on the command's basename so `./bin/tally`, `bin/tally` and a
+    # full path all resolve to .completions/tally, as bare `tally` does.
+    local cmd=${1##*/} d=$PWD
     while [[ -n $d ]]; do
-        [[ -f $d/.completions/$1 ]] && { printf '%s\n' "$d/.completions/$1"; return 0; }
+        [[ -f $d/.completions/$cmd ]] && { printf '%s\n' "$d/.completions/$cmd"; return 0; }
         [[ $d == / ]] && break
         d=${d%/*}
     done
