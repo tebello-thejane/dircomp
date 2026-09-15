@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # dircomp installer — idempotent: safe to re-run for updates.
 #
-#   curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.3/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.0/install.sh | bash
 #
 # Pin to a tag (vX.Y.Z), never to a branch — curl|bash has no verification
 # step of its own, and a branch can change under you between the curl and the
@@ -16,7 +16,7 @@ set -euo pipefail
 
 # Bumped as part of the release process; must match the tag this file is
 # published under, or a pinned install silently pulls an unpinned library.
-DIRCOMP_RELEASE="v0.1.3"
+DIRCOMP_RELEASE="v0.2.0"
 
 REPO_RAW="${DIRCOMP_REPO_RAW:-https://raw.githubusercontent.com/tebello-thejane/dircomp/$DIRCOMP_RELEASE}"
 INSTALL_DIR="$HOME/.local/share/dircomp"

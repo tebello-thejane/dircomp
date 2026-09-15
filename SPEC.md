@@ -1,9 +1,13 @@
-# dircomp completion spec — format v1
+# dircomp completion spec — format v2
 
 A spec file lives at `<project>/.completions/<command>` and is plain text,
-never executed. It is read fresh on every TAB press by walking up from the
-current directory, so it applies inside the project (and its subdirectories)
-only, with no load/unload step and nothing to go stale.
+never executed. On every TAB press the reader resolves the command word to
+its file on disk and walks up from that file's directory until it finds
+`.completions/<name>`, where `<name>` is the resolved file's basename. The
+spec therefore follows the script, not your shell's location: `bin/tally`,
+`./compl/bin/tally` from the parent directory, `~/compl/bin/tally` from
+anywhere, a symlink to it, or bare `tally` when `bin/` is on PATH all read
+`compl/.completions/tally`. There is no load or unload step.
 
 ## Grammar
 
@@ -16,7 +20,24 @@ word                          — a candidate for the first word (before any sub
 
 [subcommand --flag]
 value                         — a candidate for that flag's value
+
+@file                         — in any section: filenames in the current directory
+@dir                          — directories only
+@user                         — login names
+@host                         — hostnames (from HOSTFILE or /etc/hosts)
 ```
+
+A literal line is offered when it starts with what has been typed so far.
+It is compared as a string and nothing else: `$(rm -rf ~)` or `*` in a spec
+is a candidate spelt exactly that way, not a command or a glob.
+
+An `@kind` line selects one fixed bash builtin (`compgen -f`, `-d`, `-u`,
+`-A hostname`) run against the word being typed. The spec can choose the
+kind but cannot pass it anything, so no spec text reaches the shell there
+either. Kinds and literals may be mixed in one section. An `@` line naming a
+kind this reader does not know is skipped, so a file written for a newer
+reader offers fewer candidates rather than a stray literal. A literal
+candidate beginning with `@` cannot be expressed in v2.
 
 ## Example
 
@@ -28,6 +49,10 @@ clear
 
 [add]
 --count
+--from
+
+[add --from]
+@file
 
 [list]
 --json
@@ -39,22 +64,42 @@ count
 
 [clear]
 --yes
+--owner
+
+[clear --owner]
+@user
 ```
 
 `tally <TAB>` offers `add list clear --help`. `tally list --sort <TAB>`
-offers `label count`.
+offers `label count`. `tally add --from <TAB>` offers files in the current
+directory. `tally clear --owner <TAB>` offers login names.
 
-## Known limits (v1)
+## Changes from v1
+
+- Spec lookup starts from the command's file, not from the current
+  directory. Under v1, `./compl/bin/tally <TAB>` from the parent directory
+  completed filenames because no `.completions/` existed above `$PWD`.
+- `@file`, `@dir`, `@user`, `@host` kinds added. Under v1 these were four
+  literal candidates; that is the incompatibility that moves the version.
+- A project spec never overrides a completion bash-completion knows for the
+  same command name. That was the documented intent under v1 and now holds
+  on bash-completion 2.12+ as well as 2.11.
+
+## Known limits (v2)
 
 - No positional-argument awareness: a spec can't say "the first argument to
   `add` is a free-text label, don't offer flags there." It only distinguishes
   the first word, a subcommand's flags, and one flag's values.
-- No dynamic candidates (reading a file list, hitting an API). Static text
-  only, by design. The reader matches each line as a literal prefix and
-  never hands spec text to `compgen -W`, `eval`, `source`, or any other
-  expansion, so a committed spec cannot run commands on TAB.
+- No dynamic candidates beyond the four kinds. No `@lines <path>`, no
+  `$(...)`, by design.
+- `@file` and `@dir` do not expand `~` or unquote the word being typed;
+  they see it as bash's `compgen` does. Sections containing them are
+  completed with readline's filename rules for the whole section, so a
+  literal candidate that happens to match a directory name gets a trailing
+  slash.
 - Nesting is one level: `[subcommand --flag]`, not `[subcommand subsubcommand]`.
+- `--flag=value` is not recognised; only `--flag value`.
 
-Report a v2 need against the version in `lib/dircomp.bash`
-(`DIRCOMP_SPEC_VERSION`) rather than hand-extending v1's grammar informally —
+Report a v3 need against the version in `lib/dircomp.bash`
+(`DIRCOMP_SPEC_VERSION`) rather than hand-extending the grammar informally —
 that field exists so a future reader can tell which grammar a file assumes.

@@ -1,22 +1,26 @@
 # dircomp
 
 Directory-scoped bash completions. A project drops a plain-text spec at
-`.completions/<command>`; typing that command and pressing TAB inside the
-project (or any subdirectory of it) completes from that spec.
+`.completions/<command>`; typing a command that lives in that project and
+pressing TAB completes from the spec, from whatever directory you happen to
+be in.
 
 Spec files are read as literal text. They are never sourced, and never passed
 through `compgen -W` or any other shell expansion, so a line like
 `$(rm -rf ~)` in a checked-out `.completions/` file is offered as a
-candidate string and nothing more. See *Scope and limits* below for what
-happens outside the project.
+candidate string and nothing more. Four `@kind` lines (`@file`, `@dir`,
+`@user`, `@host`) select fixed builtins the spec cannot parameterise.
 
 No load step, no unload step, no environment variable, no direnv dependency.
-The completion machinery resolves the spec fresh from `$PWD` on every TAB.
+On every TAB the machinery resolves the command word to its file (a typed
+path, a symlink, or a bare name through PATH), then walks up from that
+file's directory to find `.completions/<name>`. The spec travels with the
+script.
 
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.3/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.0/install.sh | bash
 ```
 
 Pin to a release tag, not `main` — a curl|bash install has no verification
@@ -36,7 +40,7 @@ Re-run the install command with a newer tag.
 ## Uninstall
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.3/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.0/uninstall.sh | bash
 ```
 
 Removes the bashrc block and `~/.local/share/dircomp`. Projects' own
@@ -52,34 +56,38 @@ mkdir -p .completions
 $EDITOR .completions/mycommand
 ```
 
-See [SPEC.md](SPEC.md) for the file format.
+See [SPEC.md](SPEC.md) for the file format. Then, from anywhere:
+
+```
+$ ~/proj/bin/mycommand <TAB>
+$ cd ~/proj && bin/mycommand <TAB>
+$ mycommand <TAB>          # if ~/proj/bin is on PATH, e.g. via direnv
+```
 
 ## Scope and limits
 
 dircomp hooks bash's *default* completion, the one consulted only for
-commands that have no completion of their own registered yet. Two
-consequences follow, and both are current behaviour, not plans:
+commands that have no completion registered yet. When it fires, it first
+lets bash-completion look for a native completion for the command. If one
+exists, that is registered and used; the project spec is not consulted.
+Only a command bash-completion has nothing for is completed from its spec.
 
-- **A command that already has a completion registered in your shell cannot
-  be overridden by a project spec.** `git`, `ssh`, and anything your fzf or
-  other integration wraps at startup fall in this group. A
-  `.completions/git` file is silently ignored.
-- **A project spec for a command whose native completion has not loaded yet
-  displaces that native completion for the rest of the shell session.**
-  Enter a project with `.completions/7z`, press TAB on `7z`, and `7z` will
-  complete from the spec inside the project and from plain filenames
-  outside it, instead of from bash-completion's own `7z` rules, until you
-  open a new shell.
+So a project spec **cannot override or extend** completion for `git`,
+`ssh`, `7z`, anything your fzf or other integration wraps at startup, or
+anything bash-completion ships a completion file for. A `.completions/git`
+file is silently ignored. This is a deliberate contract, not a gap: dircomp
+is for commands that are *specific to the project*, such as a script under
+the project's own `bin/`.
 
-In practice dircomp fits commands that are *specific to the project*, such
-as a script under the project's own `bin/`. Using it to add per-project
-targets to a global tool is not yet supported.
+Shell functions and aliases have no file on disk and so never match a spec.
 
 ## Requirements
 
-The system `bash-completion` package (2.x), already loaded by most distro
-default `.bashrc`s. The library checks for this at source time and refuses
-to load with a clear error instead of silently doing nothing.
+- The system `bash-completion` package, 2.11 or later. Most distro default
+  `.bashrc`s load it. The library checks for it at source time and refuses
+  to load with a clear error instead of silently doing nothing.
+- `realpath` from coreutils (or GNU `readlink -f`), used to resolve the
+  command word to its file.
 
 ## Local development
 
@@ -87,6 +95,8 @@ to load with a clear error instead of silently doing nothing.
 git clone https://github.com/tebello-thejane/dircomp
 cd dircomp
 DIRCOMP_LOCAL_SOURCE=1 ./install.sh     # installs from the local checkout, no curl
+./test/tab.py                           # drives a real bash through a pty and presses TAB
+./test/docker.sh                        # same, on debian:bookworm-slim (2.11) and debian:trixie-slim (2.16)
 ```
 
 ## Versioning
