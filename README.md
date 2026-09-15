@@ -16,7 +16,7 @@ The completion machinery resolves the spec fresh from `$PWD` on every TAB.
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.2/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.3/install.sh | bash
 ```
 
 Pin to a release tag, not `main` — a curl|bash install has no verification
@@ -36,7 +36,7 @@ Re-run the install command with a newer tag.
 ## Uninstall
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.2/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.1.3/uninstall.sh | bash
 ```
 
 Removes the bashrc block and `~/.local/share/dircomp`. Projects' own

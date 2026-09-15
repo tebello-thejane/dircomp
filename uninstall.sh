@@ -9,14 +9,14 @@ MARK_END="# <<< dircomp <<<"
 die() { echo "dircomp: $*" >&2; exit 1; }
 
 if [[ -f $BASHRC ]]; then
-    n_begin=$(grep -cF -- "$MARK_BEGIN" "$BASHRC" || true)
-    n_end=$(grep -cF -- "$MARK_END" "$BASHRC" || true)
+    n_begin=$(grep -cxF -- "$MARK_BEGIN" "$BASHRC" || true)
+    n_end=$(grep -cxF -- "$MARK_END" "$BASHRC" || true)
 
     if (( n_begin == 0 && n_end == 0 )); then
         echo "dircomp: no managed block found in $BASHRC"
     elif (( n_begin == 1 && n_end == 1 )); then
-        line_begin=$(grep -nF -- "$MARK_BEGIN" "$BASHRC" | head -1 | cut -d: -f1)
-        line_end=$(grep -nF -- "$MARK_END" "$BASHRC" | head -1 | cut -d: -f1)
+        line_begin=$(grep -nxF -- "$MARK_BEGIN" "$BASHRC" | head -1 | cut -d: -f1)
+        line_end=$(grep -nxF -- "$MARK_END" "$BASHRC" | head -1 | cut -d: -f1)
         (( line_begin < line_end )) || die "$BASHRC has inverted dircomp markers — fix by hand, refusing to rewrite"
         tmp=$(mktemp)
         trap 'rm -f "$tmp"' EXIT
