@@ -20,7 +20,7 @@ script.
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.2/install.sh | bash
 ```
 
 Pin to a release tag, not `main` — a curl|bash install has no verification
@@ -40,7 +40,7 @@ Re-run the install command with a newer tag.
 ## Uninstall
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.0/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tebello-thejane/dircomp/v0.2.2/uninstall.sh | bash
 ```
 
 Removes the bashrc block and `~/.local/share/dircomp`. Projects' own
@@ -81,13 +81,22 @@ the project's own `bin/`.
 
 Shell functions and aliases have no file on disk and so never match a spec.
 
+Within a command that does have a spec, nothing is lost. When no candidate
+matches, completion falls through to bash's own, so redirect targets and
+flag values the spec says nothing about behave as they do everywhere else.
+
 ## Requirements
 
 - The system `bash-completion` package, 2.11 or later. Most distro default
-  `.bashrc`s load it. The library checks for it at source time and refuses
-  to load with a clear error instead of silently doing nothing.
+  `.bashrc`s load it. Both generations of its internals are supported: the
+  2.11 names and the ones introduced by the 2.12 rework, whose deprecation
+  wrappers a user is free to disable. The library detects whichever is
+  present at source time and refuses to load with a clear error instead of
+  silently doing nothing.
 - `realpath` from coreutils (or GNU `readlink -f`), used to resolve the
   command word to its file.
+
+Tested on bash-completion 2.11, 2.16.0 and 2.18.0. See *Local development*.
 
 ## Local development
 
@@ -96,7 +105,8 @@ git clone https://github.com/tebello-thejane/dircomp
 cd dircomp
 DIRCOMP_LOCAL_SOURCE=1 ./install.sh     # installs from the local checkout, no curl
 ./test/tab.py                           # drives a real bash through a pty and presses TAB
-./test/docker.sh                        # same, on debian:bookworm-slim (2.11) and debian:trixie-slim (2.16)
+./test/installer.sh                     # installs into throwaway HOMEs and asserts on the leftovers
+./test/docker.sh                        # both suites on bash-completion 2.11, 2.16.0 and 2.18.0
 ```
 
 ## Versioning

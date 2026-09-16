@@ -20,30 +20,44 @@
 # ~/.local/share/dircomp/dircomp.bash and sourced from ~/.bashrc via one
 # guarded line — see that file for the install/update/uninstall story.
 
-DIRCOMP_VERSION="0.2.0"
+DIRCOMP_VERSION="0.2.2"
 DIRCOMP_SPEC_VERSION="2"   # bump only if the file grammar changes incompatibly
 
-# Requires bash-completion — bail out loudly rather than silently no-op if it
-# isn't loaded yet.
-if ! declare -F _completion_loader >/dev/null; then
+# bash-completion reworked its internals in 2.12. _comp_load is the loading
+# primitive; _comp_complete_load is the `complete -D` callback that wraps
+# `_comp_load -D` and returns 124. The 2.11 names _completion_loader and
+# _minimal survive only as deprecation wrappers in the compat startup file
+# (startup-core/000_bash_completion_compat.bash), which loads by default but
+# can be shadowed by a file of the same name earlier in the startup search
+# path. So detect whichever generation is actually present and refuse only
+# when neither is: gating on the deprecated name alone would turn a perfectly
+# good 2.12+ setup into a load error.
+if declare -F _comp_complete_load >/dev/null; then
+    _DIRCOMP_LOADER=_comp_complete_load
+elif declare -F _completion_loader >/dev/null; then
+    _DIRCOMP_LOADER=_completion_loader
+else
     echo "dircomp: bash-completion not loaded — source it before this file" >&2
     return 1 2>/dev/null || exit 1
 fi
 
-# bash-completion renamed its internals in 2.12 (_completion_loader →
-# _comp_complete_load, _minimal → _comp_complete_minimal), keeping the old
-# names as wrappers. Prefer the current loader, and read the "nothing found"
-# stub's name from what is registered for the empty command rather than
-# hard-coding either spelling.
-if declare -F _comp_complete_load >/dev/null; then
-    _DIRCOMP_LOADER=_comp_complete_load
-else
-    _DIRCOMP_LOADER=_completion_loader
-fi
+# Read the "nothing found" stub's name from what bash-completion registered
+# for the empty command rather than hard-coding either spelling, then fall
+# back to the known names if that compspec is missing or names a function
+# that does not exist.
 _DIRCOMP_MINIMAL=$(complete -p '' 2>/dev/null)
 _DIRCOMP_MINIMAL=${_DIRCOMP_MINIMAL#*-F }
 _DIRCOMP_MINIMAL=${_DIRCOMP_MINIMAL%% *}
-: "${_DIRCOMP_MINIMAL:=_minimal}"
+if [[ -z $_DIRCOMP_MINIMAL ]] || ! declare -F "$_DIRCOMP_MINIMAL" >/dev/null; then
+    if declare -F _comp_complete_minimal >/dev/null; then
+        _DIRCOMP_MINIMAL=_comp_complete_minimal
+    elif declare -F _minimal >/dev/null; then
+        _DIRCOMP_MINIMAL=_minimal
+    else
+        echo "dircomp: bash-completion's fallback completion not found" >&2
+        return 1 2>/dev/null || exit 1
+    fi
+fi
 
 _dircomp_resolve() {
     # Print the real path of the executable the command word names, or fail.
@@ -70,7 +84,10 @@ _dircomp_find() {
     cmd=${path##*/}
     d=${path%/*}; d=${d:-/}
     while :; do
-        [[ -f $d/.completions/$cmd ]] && { printf '%s\n' "$d/.completions/$cmd"; return 0; }
+        # -r as well as -f: an unreadable spec must fall through to the
+        # normal fallback, not make awk print a permission error into the
+        # middle of the completion display on every TAB.
+        [[ -f $d/.completions/$cmd && -r $d/.completions/$cmd ]] && { printf '%s\n' "$d/.completions/$cmd"; return 0; }
         [[ $d == / ]] && break
         d=${d%/*}; d=${d:-/}     # stripping /tmp yields ""; visit / last, not never
     done
@@ -78,11 +95,29 @@ _dircomp_find() {
 }
 
 _dircomp_section() {
+    # Every line is trimmed before it is classified, so indenting a spec for
+    # readability cannot change its meaning. Without this, a comment or blank
+    # line tolerated leading whitespace while a section header did not: an
+    # indented header was emitted as a literal candidate and its own section
+    # became unreachable, with nothing to say so. Inside a header, runs of
+    # whitespace collapse to one space so that [list  --sort] still matches
+    # the "<subcommand> <flag>" key the caller builds.
     awk -v want="$2" '
-        /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
-        /^\[.*\]$/ { cur = substr($0, 2, length($0) - 2); next }
-        cur == want { print }
-    ' "$1"
+        {
+            line = $0
+            sub(/^[[:space:]]+/, "", line)
+            sub(/[[:space:]]+$/, "", line)
+        }
+        line ~ /^#/ || line == "" { next }
+        line ~ /^\[.*\]$/ {
+            cur = substr(line, 2, length(line) - 2)
+            gsub(/[[:space:]]+/, " ", cur)
+            sub(/^ /, "", cur)
+            sub(/ $/, "", cur)
+            next
+        }
+        cur == want { print line }
+    ' "$1" 2>/dev/null
 }
 
 _dircomp() {
@@ -134,7 +169,14 @@ _dircomp_load() {
     # the rest of the session.
     local cmd=${1:-_EmptycmD_}
     "$_DIRCOMP_LOADER" "$cmd"
-    [[ $(complete -p -- "$cmd" 2>/dev/null) == *"-F $_DIRCOMP_MINIMAL "* ]] && complete -F _dircomp -- "$cmd"
+    # -o bashdefault -o default so that an empty COMPREPLY falls back to
+    # bash's own completion instead of to nothing. The stub being replaced
+    # here completes filenames, and a command must not lose that just because
+    # it gained a spec: a redirect target, or a flag value the spec says
+    # nothing about, still completes as it would anywhere else. Both options
+    # apply only when the reply is empty, so a matching section is unaffected.
+    [[ $(complete -p -- "$cmd" 2>/dev/null) == *"-F $_DIRCOMP_MINIMAL "* ]] &&
+        complete -o bashdefault -o default -F _dircomp -- "$cmd"
     return 124
 }
 

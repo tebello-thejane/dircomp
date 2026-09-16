@@ -27,9 +27,20 @@ value                         — a candidate for that flag's value
 @host                         — hostnames (from HOSTFILE or /etc/hosts)
 ```
 
+Leading and trailing whitespace is stripped from every line before it is
+read, headers included, so a spec may be indented for readability. Inside a
+header, runs of whitespace collapse to one space, so `[list  --sort]` and
+`[list --sort]` name the same section. A candidate cannot therefore begin or
+end with a space.
+
 A literal line is offered when it starts with what has been typed so far.
 It is compared as a string and nothing else: `$(rm -rf ~)` or `*` in a spec
 is a candidate spelt exactly that way, not a command or a glob.
+
+When no candidate in the relevant section matches, completion falls back to
+bash's own, which is normally filenames. A command does not lose ordinary
+completion by gaining a spec: a redirect target, or a flag value the spec
+says nothing about, still completes as it would for any other command.
 
 An `@kind` line selects one fixed bash builtin (`compgen -f`, `-d`, `-u`,
 `-A hostname`) run against the word being typed. The spec can choose the
@@ -99,6 +110,9 @@ directory. `tally clear --owner <TAB>` offers login names.
   slash.
 - Nesting is one level: `[subcommand --flag]`, not `[subcommand subsubcommand]`.
 - `--flag=value` is not recognised; only `--flag value`.
+- A spec file that cannot be read is skipped silently and the walk continues
+  upward. There is no warning, because a completion handler has nowhere to
+  put one without corrupting the line being edited.
 
 Report a v3 need against the version in `lib/dircomp.bash`
 (`DIRCOMP_SPEC_VERSION`) rather than hand-extending the grammar informally —
