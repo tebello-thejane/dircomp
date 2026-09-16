@@ -88,6 +88,20 @@ $(touch {pwned})
 @user
 """
 
+# Leading whitespace is tolerated on every line, section headers included.
+# An author who indents a spec for readability must not silently get a
+# different grammar: before 0.2.2 an indented header was offered as a literal
+# candidate and its section was unreachable. The trailing space after @dir is
+# deliberate.
+SPEC_INDENT = """\
+alpha
+beta
+
+  [beta]
+    --deep
+  @dir
+"""
+
 NATIVE_FOO = """\
 _foo() { COMPREPLY=(native1); }
 complete -F _foo foo
@@ -121,6 +135,18 @@ def build_fixture(root: Path) -> None:
     (compl / ".completions" / "foo").write_text("spec1\n")
 
     (root / "bc" / "completions" / "foo").write_text(NATIVE_FOO)
+
+    indent = compl / "bin" / "indent"
+    indent.write_text("#!/bin/sh\n")
+    indent.chmod(0o755)
+    (compl / ".completions" / "indent").write_text(SPEC_INDENT)
+
+    noread = compl / "bin" / "noread"
+    noread.write_text("#!/bin/sh\n")
+    noread.chmod(0o755)
+    unreadable = compl / ".completions" / "noread"
+    unreadable.write_text("neverseen\n")
+    unreadable.chmod(0o000)
 
     (root / "hosts").write_text("alpha.example\nbeta.example\n")
 
@@ -383,6 +409,18 @@ def build_cases(root: Path) -> list[dict]:
              line="tally clear ",
              expect=({"--yes", "--owner", f"$(touch {pwned})", "*"}, "=="),
              not_in={"@bogus"}, must_not_exist=pwned),
+        dict(name="15 redirect target still completes", cwd=work,
+             line="tally list > alp", expect=({"alpha.txt"}, "==")),
+        dict(name="16 no section match falls back to filenames", cwd=work,
+             line="tally add --count al", expect=({"alpha.txt"}, "==")),
+        dict(name="17 indented spec, top-level section", cwd=work,
+             line="../compl/bin/indent ", expect=({"alpha", "beta"}, "==")),
+        dict(name="18 indented spec, indented header and @kind", cwd=work,
+             line="../compl/bin/indent beta ", expect=({"--deep", "sub"}, "==")),
+        dict(name="19 unreadable spec falls back with no awk error", cwd=work,
+             line="../compl/bin/noread ",
+             expect=({"alpha.txt", "beta.txt", "sub"}, "=="),
+             skip_if_root=True),
         dict(name="pre-13 restore PATH", pre="export PATH=$DIRCOMP_TEST_PATH"),
         dict(name="13 unknown command falls back to filenames", cwd=home,
              line="tally ", expect=({"bin", "compl", "work"}, "==")),
@@ -430,6 +468,11 @@ def run_suite(root: Path, args) -> int:
         for case in build_cases(root):
             if "pre" in case:
                 sh.run(case["pre"])
+                continue
+            if case.get("skip_if_root") and os.geteuid() == 0:
+                # root reads a mode-000 file regardless, so the case cannot
+                # assert anything here.
+                print(f"SKIP {case['name']} (root bypasses file permissions)")
                 continue
             sh.run(f"cd {shlex.quote(str(case['cwd']))}")
             listing, buf = sh.probe(case["line"], args.tab_wait)
