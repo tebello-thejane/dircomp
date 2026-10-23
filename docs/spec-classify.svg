@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 616" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-classify-title spec-classify-desc">
+<title id="spec-classify-title">dircomp spec v3: classifying the cursor word</title>
+<desc id="spec-classify-desc">Flowchart of how the word under the cursor is classified as a flag value, a positional slot, or a node's own names and flags.</desc>
+<defs>
+<style>@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap');</style>
+<marker id="spec-classify-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="spec-classify-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M400 88 V152" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M400 248 V312" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M400 408 V472" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M540 200 H640" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M540 360 H640" fill="none" stroke="#da6a07" stroke-width="1" marker-end="url(#spec-classify-arrow-accent)"/>
+<rect x="576" y="180" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="590" y="189" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="576" y="340" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="590" y="349" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="408" y="274" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="422" y="283" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<rect x="408" y="434" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="422" y="443" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<rect x="300" y="48" width="200" height="40" rx="20" fill="#f4f4f4"/>
+<rect x="300" y="48" width="200" height="40" rx="20" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="400.0" y="72.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">word at cursor</text>
+<polygon points="400,152 540,200 400,248 260,200" fill="#f4f4f4"/>
+<polygon points="400,152 540,200 400,248 260,200" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="400" y="196" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">flag pending,</text>
+<text x="400" y="212" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">or --flag=… ?</text>
+<polygon points="400,312 540,360 400,408 260,360" fill="#f4f4f4"/>
+<polygon points="400,312 540,360 400,408 260,360" fill="#da6a07" fill-opacity="0.08" stroke="#da6a07" stroke-width="1"/>
+<text x="400" y="356" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">flags ended, or no dash</text>
+<text x="400" y="372" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">and a slot exists?</text>
+<rect x="640" y="168" width="260" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="640" y="168" width="260" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="770.0" y="192.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">value</text>
+<text x="770.0" y="208.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">candidates: [P flag]</text>
+<text x="770.0" y="220.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">else [* flag]</text>
+<rect x="640" y="328" width="260" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="640" y="328" width="260" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="770.0" y="352.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional slot</text>
+<text x="770.0" y="368.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[P #k+1], else [P #*]</text>
+<text x="770.0" y="380.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">none if flags ended, no slot</text>
+<rect x="270" y="472" width="260" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="270" y="472" width="260" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="400.0" y="496.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">node</text>
+<text x="400.0" y="512.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[P] plus [*]</text>
+<text x="400.0" y="524.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">dash lines only if k ≥ 1</text>
+<line x1="32" y1="568" x2="968" y2="568" stroke="#2d2d3b" stroke-opacity="0.12" stroke-width="0.8"/>
+<text x="32" y="588" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<polygon points="128,580 136,588 128,596 120,588" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="144" y="592" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">decision</text>
+<rect x="240" y="582" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="264" y="592" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">outcome</text>
+<polygon points="368,580 376,588 368,596 360,588" fill="#da6a07" fill-opacity="0.08" stroke="#da6a07" stroke-width="1"/>
+<text x="384" y="592" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the slot test</text>
+</svg>

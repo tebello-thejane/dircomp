@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dircomp spec v3 diagrams</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f4f4f4;
+      --color-ink:    #2d2d3b;
+      --color-muted:  #616161;
+      --color-soft:   #878787;
+      --color-rule:   rgba(45,45,59,0.12);
+      --color-accent: #da6a07;
+      --font-sans:    'Roboto', system-ui, sans-serif;
+      --font-mono:    'IBM Plex Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      padding: 3rem 2rem 2rem;
+    }
+    .frame { max-width: 1040px; margin: 0 auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    .lede { color: var(--color-muted); font-size: 0.95rem; line-height: 1.5; max-width: 64ch; margin-bottom: 3rem; }
+    .lede code, figcaption code { font-family: var(--font-mono); font-size: 0.85em; color: var(--color-ink); }
+    section { margin-bottom: 3.5rem; }
+    h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; }
+    figure svg { width: 100%; display: block; }
+    figcaption { margin-top: 0.75rem; color: var(--color-muted); font-size: 0.85rem; line-height: 1.5; max-width: 72ch; }
+    footer {
+      border-top: 1px solid var(--color-rule);
+      padding-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--color-soft);
+    }
+    a { color: inherit; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">dircomp &middot; completion spec v3</p>
+    <h1>Spec v3 in three diagrams</h1>
+    <p class="lede">The shape a <code>.completions</code> file describes, how the reader consumes the words before the cursor, and how it classifies the word under it. Prose and grammar are in <a href="../SPEC.md">SPEC.md</a>.</p>
+
+    <section>
+      <p class="eyebrow">Tree &middot; shape</p>
+      <h2>What a spec describes</h2>
+      <figure>
+<svg viewBox="0 0 1000 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-tree-title spec-tree-desc">
+<title id="spec-tree-title">dircomp spec v3: the node tree</title>
+<desc id="spec-tree-desc">Tree of a docker-shaped command spec: a root node, a global section merged into every node, and run and rm nodes with flag-value and positional-slot leaves.</desc>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M460 92 V140" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M460 120 H128 A8 8 0 0 0 120 128 V140" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M460 120 H852 A8 8 0 0 1 860 128 V140" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M460 192 V240" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M460 216 H288 A8 8 0 0 0 280 224 V240" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M460 216 H632 A8 8 0 0 1 640 224 V240" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M860 192 V240" fill="none" stroke="#616161" stroke-width="1"/>
+<rect x="370" y="40" width="180" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="370" y="40" width="180" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="460.0" y="64.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">root</text>
+<text x="460.0" y="80.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">run rm ps --help</text>
+<rect x="40" y="140" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="40" y="140" width="160" height="52" rx="6" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="120.0" y="164.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[*]</text>
+<text x="120.0" y="180.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">merged into every node</text>
+<rect x="380" y="140" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="380" y="140" width="160" height="52" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="460.0" y="164.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[run]</text>
+<text x="460.0" y="180.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">@endopts  --name -p -t</text>
+<rect x="780" y="140" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="780" y="140" width="160" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="860.0" y="164.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[rm]</text>
+<text x="860.0" y="180.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">-f</text>
+<rect x="200" y="240" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="200" y="240" width="160" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="280.0" y="264.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[run --restart]</text>
+<text x="280.0" y="280.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">no always on-failure</text>
+<rect x="380" y="240" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="380" y="240" width="160" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="460.0" y="264.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[run #1]</text>
+<text x="460.0" y="280.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">image: free text</text>
+<rect x="560" y="240" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="560" y="240" width="160" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="640.0" y="264.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[run #*]</text>
+<text x="640.0" y="280.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">command, args</text>
+<rect x="780" y="240" width="160" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="780" y="240" width="160" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="860.0" y="264.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[rm #*]</text>
+<text x="860.0" y="280.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">containers</text>
+<line x1="32" y1="324" x2="968" y2="324" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="32" y="344" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="120" y="338" width="16" height="12" rx="3" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="144" y="348" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">directive: flags end at the first positional</text>
+<rect x="424" y="338" width="16" height="12" rx="3" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="448" y="348" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">merged into every node</text>
+<rect x="624" y="338" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="648" y="348" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">leaf: flag values or a positional slot</text>
+</svg>
+        <figcaption>Each box is a <code>[path]</code> section of a docker-shaped spec. <code>[*]</code> is merged into every node. Leaves are flag-value sections and positional slots; <code>@endopts</code> on <code>[run]</code> hands everything after the image to the container.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <p class="eyebrow">Flowchart &middot; walk</p>
+      <h2>Consuming one typed word</h2>
+      <figure>
+<svg viewBox="0 0 1000 744" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-walk-title spec-walk-desc">
+<title id="spec-walk-title">dircomp spec v3: walking one typed word</title>
+<desc id="spec-walk-desc">Flowchart of how the reader consumes each word before the cursor: pending flag, endopts, long or short flag, descent into a node, or positional.</desc>
+<defs>
+<marker id="spec-walk-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="spec-walk-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M500 124 V180" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M500 268 V324" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M500 412 V476" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M500 564 V622" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M620 80 H700" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M380 368 H320" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M620 368 H700" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M620 520 H700" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
+<path d="M620 224 H940 A8 8 0 0 1 948 232 V638 A8 8 0 0 1 940 646 H600" fill="none" stroke="#da6a07" stroke-width="1" marker-end="url(#spec-walk-arrow-accent)"/>
+<rect x="646" y="60" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="660" y="69" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="508" y="146" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="522" y="155" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<rect x="666" y="204" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="680" y="213" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="508" y="290" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="522" y="299" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<rect x="332" y="348" width="36" height="12" rx="2" fill="#f4f4f4"/>
+<text x="350" y="357" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LONG</text>
+<rect x="640" y="348" width="40" height="12" rx="2" fill="#f4f4f4"/>
+<text x="660" y="357" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SHORT</text>
+<rect x="508" y="438" width="36" height="12" rx="2" fill="#f4f4f4"/>
+<text x="526" y="447" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">BARE</text>
+<rect x="646" y="500" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="660" y="509" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="508" y="586" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="522" y="595" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<polygon points="500,36 620,80 500,124 380,80" fill="#f4f4f4"/>
+<polygon points="500,36 620,80 500,124 380,80" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="500" y="84" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">flag pending?</text>
+<polygon points="500,180 620,224 500,268 380,224" fill="#f4f4f4"/>
+<polygon points="500,180 620,224 500,268 380,224" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="500" y="220" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">endopts and</text>
+<text x="500" y="236" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">k ≥ 1?</text>
+<polygon points="500,324 620,368 500,412 380,368" fill="#f4f4f4"/>
+<polygon points="500,324 620,368 500,412 380,368" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="500" y="372" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">word starts with?</text>
+<polygon points="500,476 620,520 500,564 380,520" fill="#f4f4f4"/>
+<polygon points="500,476 620,520 500,564 380,520" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="500" y="516" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">k = 0 and</text>
+<text x="500" y="532" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">node exists?</text>
+<rect x="700" y="56" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="700" y="56" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="800.0" y="78.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">word is its value</text>
+<text x="800.0" y="94.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">pending clears</text>
+<rect x="120" y="328" width="200" height="80" rx="6" fill="#f4f4f4"/>
+<rect x="120" y="328" width="200" height="80" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="220.0" y="354.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">long flag  --x</text>
+<text x="220.0" y="370.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--x=v : value attached</text>
+<text x="220.0" y="382.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">declared flag : pending</text>
+<text x="220.0" y="394.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">undeclared : bare flag</text>
+<rect x="700" y="328" width="200" height="80" rx="6" fill="#f4f4f4"/>
+<rect x="700" y="328" width="200" height="80" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="800.0" y="354.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">short flag, cluster</text>
+<text x="800.0" y="370.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">scan chars left to right</text>
+<text x="800.0" y="382.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">declared char takes value:</text>
+<text x="800.0" y="394.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">attached, or next word</text>
+<rect x="700" y="496" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="700" y="496" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="800.0" y="518.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
+<text x="800.0" y="534.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">path += word, k = 0</text>
+<rect x="400" y="622" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="400" y="622" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="500.0" y="644.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional</text>
+<text x="500.0" y="660.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = k + 1</text>
+<line x1="32" y1="692" x2="968" y2="692" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="32" y="712" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<polygon points="128,704 136,712 128,720 120,712" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="144" y="716" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">decision</text>
+<rect x="240" y="706" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="264" y="716" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">step</text>
+<polygon points="348,704 356,712 348,720 340,712" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="364" y="716" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the @endopts check</text>
+</svg>
+        <figcaption>Run for every word before the cursor, left to right. <code>k</code> counts positionals at the current node. Descent into a subcommand is only possible while <code>k</code> is 0.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <p class="eyebrow">Flowchart &middot; classify</p>
+      <h2>The word under the cursor</h2>
+      <figure>
+<svg viewBox="0 0 1000 616" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-classify-title spec-classify-desc">
+<title id="spec-classify-title">dircomp spec v3: classifying the cursor word</title>
+<desc id="spec-classify-desc">Flowchart of how the word under the cursor is classified as a flag value, a positional slot, or a node's own names and flags.</desc>
+<defs>
+<marker id="spec-classify-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="spec-classify-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M400 88 V152" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M400 248 V312" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M400 408 V472" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M540 200 H640" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-classify-arrow)"/>
+<path d="M540 360 H640" fill="none" stroke="#da6a07" stroke-width="1" marker-end="url(#spec-classify-arrow-accent)"/>
+<rect x="576" y="180" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="590" y="189" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="576" y="340" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="590" y="349" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+<rect x="408" y="274" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="422" y="283" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<rect x="408" y="434" width="28" height="12" rx="2" fill="#f4f4f4"/>
+<text x="422" y="443" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+<rect x="300" y="48" width="200" height="40" rx="20" fill="#f4f4f4"/>
+<rect x="300" y="48" width="200" height="40" rx="20" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="400.0" y="72.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">word at cursor</text>
+<polygon points="400,152 540,200 400,248 260,200" fill="#f4f4f4"/>
+<polygon points="400,152 540,200 400,248 260,200" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="400" y="196" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">flag pending,</text>
+<text x="400" y="212" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">or --flag=… ?</text>
+<polygon points="400,312 540,360 400,408 260,360" fill="#f4f4f4"/>
+<polygon points="400,312 540,360 400,408 260,360" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="400" y="356" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">flags ended, or no dash</text>
+<text x="400" y="372" fill="#2d2d3b" font-size="12" font-weight="600" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">and a slot exists?</text>
+<rect x="640" y="168" width="260" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="640" y="168" width="260" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="770.0" y="192.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">value</text>
+<text x="770.0" y="208.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">candidates: [P flag]</text>
+<text x="770.0" y="220.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">else [* flag]</text>
+<rect x="640" y="328" width="260" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="640" y="328" width="260" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="770.0" y="352.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional slot</text>
+<text x="770.0" y="368.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[P #k+1], else [P #*]</text>
+<text x="770.0" y="380.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">none if flags ended, no slot</text>
+<rect x="270" y="472" width="260" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="270" y="472" width="260" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="400.0" y="496.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">node</text>
+<text x="400.0" y="512.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[P] plus [*]</text>
+<text x="400.0" y="524.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">dash lines only if k ≥ 1</text>
+<line x1="32" y1="568" x2="968" y2="568" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="32" y="588" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<polygon points="128,580 136,588 128,596 120,588" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="144" y="592" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">decision</text>
+<rect x="240" y="582" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="264" y="592" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">outcome</text>
+<polygon points="368,580 376,588 368,596 360,588" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="384" y="592" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the slot test</text>
+</svg>
+        <figcaption><code>P</code> is the node path the walk ended on. A slot hides flags and subcommand names until <code>-</code> is typed.</figcaption>
+      </figure>
+    </section>
+
+    <footer>Drawn with the diagram-design skill. Standalone files: spec-tree.svg, spec-walk.svg, spec-classify.svg.</footer>
+  </div>
+</body>
+</html>

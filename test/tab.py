@@ -102,6 +102,124 @@ beta
   @dir
 """
 
+# v3 fixtures. SPEC_NEST is the nesting / slot / global-section example from
+# SPEC.md; SPEC_DOCK is the docker-shaped one (clusters, @endopts, #*). Empty
+# headers such as [add --count] are deliberate: they declare "takes a value".
+SPEC_NEST = """\
+add
+list
+remote
+--help
+
+[*]
+--verbose
+--config
+
+[* --config]
+@file
+
+[add]
+--count
+--from
+
+[add --count]
+
+[add --from]
+@file
+
+[add #1]
+
+[list]
+--json
+--sort
+
+[list --sort]
+label
+count
+
+[remote]
+add
+rm
+--prune
+
+[remote add]
+--track
+
+[remote add --track]
+@host
+
+[remote add #1]
+
+[remote add #2]
+@host
+
+[remote rm #1]
+origin
+upstream
+"""
+
+SPEC_DOCK = """\
+run
+rm
+ps
+--help
+
+[*]
+--context
+--debug
+--host
+-D
+-H
+
+[* --context]
+[* --host]
+[* -H]
+
+[run]
+@endopts
+--name
+--restart
+--rm
+-d
+-i
+-p
+-t
+
+[run --name]
+[run --restart]
+no
+always
+on-failure
+unless-stopped
+[run -p]
+[run #1]
+[run #*]
+
+[rm]
+-f
+
+[rm #*]
+"""
+
+# A root slot, then a variadic one: `var` offers `first`, then `rest` for
+# every further positional.
+SPEC_VAR = """\
+[#1]
+first
+
+[#*]
+rest
+"""
+
+# Candidates containing a colon: readline replaces only what follows the last
+# one the user typed, so the reader must trim the typed prefix.
+SPEC_IMG = """\
+[#1]
+ubuntu:22.04
+ubuntu:24.04
+alpine:3.20
+"""
+
 NATIVE_FOO = """\
 _foo() { COMPREPLY=(native1); }
 complete -F _foo foo
@@ -140,6 +258,17 @@ def build_fixture(root: Path) -> None:
     indent.write_text("#!/bin/sh\n")
     indent.chmod(0o755)
     (compl / ".completions" / "indent").write_text(SPEC_INDENT)
+
+    for name, spec in (
+        ("nest", SPEC_NEST),
+        ("dock", SPEC_DOCK),
+        ("var", SPEC_VAR),
+        ("img", SPEC_IMG),
+    ):
+        script = compl / "bin" / name
+        script.write_text("#!/bin/sh\n")
+        script.chmod(0o755)
+        (compl / ".completions" / name).write_text(spec)
 
     noread = compl / "bin" / "noread"
     noread.write_text("#!/bin/sh\n")
@@ -426,6 +555,84 @@ def build_cases(root: Path) -> list[dict]:
              line="tally ", expect=({"bin", "compl", "work"}, "==")),
         dict(name="14 ./bin/tally again after a miss (not sticky)", cwd=compl,
              line="./bin/tally ", expect=(base, "==")),
+    ] + build_v3_cases(work)
+
+
+def build_v3_cases(work: Path) -> list[dict]:
+    """Format v3: depth, slots, `=`, `[*]`, clusters, @endopts, `#*`, `:`."""
+    nest = "../compl/bin/nest "
+    dock = "../compl/bin/dock "
+    var = "../compl/bin/var "
+    img = "../compl/bin/img "
+    files = {"alpha.txt", "beta.txt", "sub"}
+    g_dock = {"--context", "--debug", "--host", "-D", "-H"}
+    return [
+        dict(name="v3-1 nest root: names, root flags, [*]", cwd=work,
+             line=nest,
+             expect=({"add", "list", "remote", "--help", "--verbose", "--config"}, "==")),
+        dict(name="v3-2 [* --config] global flag values", cwd=work,
+             line=nest + "--config ", expect=(files, "==")),
+        dict(name="v3-3 an empty header still consumes the value", cwd=work,
+             # --count has a header, so 3 is its value and this is slot #1, which
+             # is empty: filenames. Were 3 a positional, k=1 and flags would show.
+             line=nest + "add --count 3 ", expect=(files, "==")),
+        dict(name="v3-4 node flags plus [*] after `-`", cwd=work,
+             line=nest + "add -",
+             expect=({"--count", "--from", "--verbose", "--config"}, "==")),
+        dict(name="v3-5 --flag= completes the value", cwd=work,
+             line=nest + "list --sort=", expect=({"label", "count"}, "==")),
+        dict(name="v3-6 --flag=la replaces only the value", cwd=work,
+             line=nest + "list --sort=la", buffer=nest + "list --sort=label "),
+        dict(name="v3-7 depth 2: remote", cwd=work,
+             line=nest + "remote ",
+             expect=({"add", "rm", "--prune", "--verbose", "--config"}, "==")),
+        dict(name="v3-8 depth 2 flag values", cwd=work,
+             line=nest + "remote add --track ",
+             expect=({"alpha.example", "beta.example"}, "==")),
+        dict(name="v3-9 positional counting: second slot", cwd=work,
+             line=nest + "remote add origin ",
+             expect=({"alpha.example", "beta.example"}, "==")),
+        dict(name="v3-10 positional slot literals", cwd=work,
+             line=nest + "remote rm ", expect=({"origin", "upstream"}, "==")),
+        dict(name="v3-11 unknown word is a positional; flags only after it", cwd=work,
+             line=nest + "frob ",
+             expect=({"--help", "--verbose", "--config"}, "==")),
+        dict(name="v3-12 dock root with globals", cwd=work,
+             line=dock, expect=({"run", "rm", "ps", "--help"} | g_dock, "==")),
+        dict(name="v3-13 global value flag takes a colon word", cwd=work,
+             # Raw COMP_WORDS split tcp://h:2375 into five words; rejoined it
+             # is -H's one value and the root is back to k=0.
+             line=dock + "-H tcp://h:2375 ",
+             expect=({"run", "rm", "ps", "--help"} | g_dock, "==")),
+        dict(name="v3-14 run flags after `-`", cwd=work,
+             line=dock + "run -",
+             expect=({"--name", "--restart", "--rm", "-d", "-i", "-p", "-t"} | g_dock, "==")),
+        dict(name="v3-15 cluster ending in a value flag takes the next word", cwd=work,
+             # -itp leaves -p pending, 80:80 is its value, so k=0 and `-` still
+             # offers flags. Were 80:80 a positional, @endopts would end flags.
+             line=dock + "run -itp 80:80 -",
+             expect=({"--name", "--restart", "--rm", "-d", "-i", "-p", "-t"} | g_dock, "==")),
+        dict(name="v3-16 --restart= enumerates values", cwd=work,
+             line=dock + "run --restart=",
+             expect=({"no", "always", "on-failure", "unless-stopped"}, "==")),
+        dict(name="v3-17 --restart=al replaces only the value", cwd=work,
+             line=dock + "run --restart=al", buffer=dock + "run --restart=always "),
+        dict(name="v3-18 @endopts: no flags after the image", cwd=work,
+             line=dock + "run -it ubuntu --", expect=(set(), "==")),
+        dict(name="v3-19 without @endopts flags still follow positionals", cwd=work,
+             line=dock + "rm a b -", expect=({"-f"} | g_dock, "==")),
+        dict(name="v3-20 root slot, then #* for every further positional", cwd=work,
+             line=var, expect=({"first"}, "==")),
+        dict(name="v3-21 #* after the numbered slot", cwd=work,
+             line=var + "x ", expect=({"rest"}, "==")),
+        dict(name="v3-22 #* keeps applying", cwd=work,
+             line=var + "x y z ", expect=({"rest"}, "==")),
+        dict(name="v3-23 colon candidates trimmed to what follows the typed colon", cwd=work,
+             line=img + "ubuntu:2", expect=({"22.04", "24.04"}, "==")),
+        dict(name="v3-24 colon candidate unique", cwd=work,
+             line=img + "ubuntu:22", buffer=img + "ubuntu:22.04 "),
+        dict(name="v3-25 no colon typed: whole candidates", cwd=work,
+             line=img + "ub", buffer=img + "ubuntu:2"),
     ]
 
 
@@ -477,17 +684,22 @@ def run_suite(root: Path, args) -> int:
             sh.run(f"cd {shlex.quote(str(case['cwd']))}")
             listing, buf = sh.probe(case["line"], args.tab_wait)
             got, mode = candidates(listing, buf, case["line"])
-            expect, how = case["expect"]
-            expect_n = {normalise(w) for w in expect}
-
             problems = []
-            if how == "==":
-                if got != expect_n:
-                    problems.append(f"expected {sorted(expect_n)} got {sorted(got)}")
+            if "buffer" in case:
+                # What readline left on the line: the replacement, not the
+                # candidate set. Needed where the two differ (after `=`/`:`).
+                if buf != case["buffer"]:
+                    problems.append(f"expected line {case['buffer']!r} got {buf!r}")
             else:
-                missing = expect_n - got
-                if missing:
-                    problems.append(f"expected to contain {sorted(missing)}; got {sorted(got)}")
+                expect, how = case["expect"]
+                expect_n = {normalise(w) for w in expect}
+                if how == "==":
+                    if got != expect_n:
+                        problems.append(f"expected {sorted(expect_n)} got {sorted(got)}")
+                else:
+                    missing = expect_n - got
+                    if missing:
+                        problems.append(f"expected to contain {sorted(missing)}; got {sorted(got)}")
             for bad in case.get("not_in", ()):  # e.g. an unknown @kind leaking
                 if bad in got:
                     problems.append(f"unexpected candidate {bad!r}")
