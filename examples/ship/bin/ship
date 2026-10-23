@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# ship — release orchestration, as a dry run: prints the plan, touches nothing.
+# One of the finished examples in docs/MANUAL.md: three-level subcommands,
+# global flags with values, enumerated values, a node-specific override of a
+# global value set.
+set -euo pipefail
+
+die() { echo "ship: $*" >&2; exit 2; }
+
+declare -A opt=()
+pos=()
+valflags=" --config --profile --region --from --channel --notes --to --user --port "
+
+while (($#)); do
+  a=$1; shift
+  case $a in
+    --*=*) opt[${a%%=*}]=${a#*=} ;;
+    --?*)
+      if [[ $valflags == *" $a "* ]]; then
+        (($#)) || die "$a needs a value"; opt[$a]=$1; shift
+      else opt[$a]=1; fi ;;
+    -[a-zA-Z]*)
+      for ((i = 1; i < ${#a}; i++)); do opt[-${a:i:1}]=1; done ;;
+    *) pos+=("$a") ;;
+  esac
+done
+
+profile=${opt[--profile]:-dev}
+((${#pos[@]})) || die "usage: ship [--profile P] [-n] env|release|host ..."
+group=${pos[0]} verb=${pos[1]:-}
+arg1=${pos[2]:-} arg2=${pos[3]:-}
+dry=; [[ -z ${opt[-n]:-} ]] || dry=" (dry run, -n)"
+
+say() { echo "[$profile] $*$dry"; }
+
+case "$group $verb" in
+  "env list")        say "list environments" ;;
+  "env show")        [[ -n $arg1 ]] || die "env show NAME"; say "show environment $arg1" ;;
+  "env create")      [[ -n $arg1 ]] || die "env create NAME"
+                     say "create environment $arg1 in ${opt[--region]:-eu-west-1}${opt[--from]:+, cloned from ${opt[--from]}}" ;;
+  "release create")  [[ -n $arg1 ]] || die "release create VERSION"
+                     say "tag $arg1 on channel ${opt[--channel]:-stable}${opt[--notes]:+, notes from ${opt[--notes]}}" ;;
+  "release promote") [[ -n $arg1 ]] || die "release promote VERSION"
+                     say "promote $arg1 to ${opt[--to]:-staging}" ;;
+  "release rollback") say "roll back ${opt[--to]:-to the previous release}" ;;
+  "host add")        [[ -n $arg1 && -n $arg2 ]] || die "host add NAME ADDRESS"
+                     say "add host $arg1 at $arg2:${opt[--port]:-22} as ${opt[--user]:-deploy}" ;;
+  "host rm")         [[ -n $arg1 ]] || die "host rm NAME"; say "remove host $arg1" ;;
+  *) die "unknown command: ${pos[*]}" ;;
+esac

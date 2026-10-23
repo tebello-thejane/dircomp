@@ -1,0 +1,99 @@
+# mig: completion spec for examples/mig/bin/mig.
+#
+#   mig [--env E] [--dir D] [-v] [-n] COMMAND ...
+#     new NAME [--kind sql|py]
+#     up | migrate [--steps N] [--to VERSION]
+#     down [--steps N] [--force]
+#     apply FILE...
+#     status [--format table|json]
+#
+# What this one shows: bare-flag clusters like -vn, value flags with fixed
+# options, an alias (migrate = up), and a variadic file slot.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+new
+up
+migrate
+down
+apply
+status
+--help
+
+# --- global: merged into every node ----------------------------------
+# -v and -n are bare switches: they take no value, so they need no header
+# of their own. -vn is read as the two of them, and nothing is pending.
+[*]
+--env
+--dir
+-v
+-n
+
+[* --env]
+dev
+staging
+prod
+
+[* --dir]
+@dir
+
+# --- mig new ---------------------------------------------------------------
+[new]
+--kind
+
+[new --kind]
+sql
+py
+
+# `mig new NAME`: free text.
+[new #1]
+
+# --- mig up, and its alias migrate ---------------------------------------
+# The format has no aliases, so `migrate` is `up` written out a second time.
+# Keep the two sections together so they stay equal.
+[up]
+--steps
+--to
+
+[up --steps]
+1
+2
+5
+
+# Versions are dynamic: declared, nothing to offer.
+[up --to]
+
+[migrate]
+--steps
+--to
+
+[migrate --steps]
+1
+2
+5
+
+[migrate --to]
+
+# --- mig down ----------------------------------------------------------------
+[down]
+--steps
+--force
+
+[down --steps]
+1
+2
+5
+
+# --- mig apply -------------------------------------------------------------
+# #* is every positional with no #N of its own: any number of files.
+[apply #*]
+@file
+
+# --- mig status ------------------------------------------------------------
+[status]
+--format
+
+[status --format]
+table
+json

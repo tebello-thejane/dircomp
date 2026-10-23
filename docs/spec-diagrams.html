@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dircomp spec v3 diagrams</title>
+  <title>dircomp diagrams</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,8 +59,60 @@
 <body>
   <div class="frame">
     <p class="eyebrow">dircomp &middot; completion spec v3</p>
-    <h1>Spec v3 in three diagrams</h1>
-    <p class="lede">The shape a <code>.completions</code> file describes, how the reader consumes the words before the cursor, and how it classifies the word under it. Prose and grammar are in <a href="../SPEC.md">SPEC.md</a>.</p>
+    <h1>dircomp in five diagrams</h1>
+    <p class="lede">What happens on a TAB, the shape a <code>.completions</code> file describes, how the reader counts positional arguments, how it consumes the words before the cursor, and how it classifies the word under it. Guide: <a href="MANUAL.md">MANUAL.md</a>. Rules: <a href="../SPEC.md">SPEC.md</a>.</p>
+
+    <section>
+      <p class="eyebrow">Flow &middot; one TAB</p>
+      <h2>What happens when you press TAB</h2>
+      <figure>
+<svg viewBox="0 0 1000 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-howitworks-title spec-howitworks-desc">
+<title id="spec-howitworks-title">dircomp: what happens on one TAB</title>
+<desc id="spec-howitworks-desc">Three steps on pressing TAB after notes remote add web: find the spec file, walk the typed words through the nodes, then pick the section for the word under the cursor.</desc>
+<defs>
+<marker id="spec-howitworks-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="spec-howitworks-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M160 72 V128" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-howitworks-arrow)"/>
+<path d="M280 170 H380" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-howitworks-arrow)"/>
+<path d="M620 170 H720" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-howitworks-arrow)"/>
+<path d="M840 212 V268" fill="none" stroke="#da6a07" stroke-width="1" marker-end="url(#spec-howitworks-arrow-accent)"/>
+<rect x="40" y="32" width="240" height="40" rx="20" fill="#f4f4f4"/>
+<rect x="40" y="32" width="240" height="40" rx="20" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="160.0" y="56.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">notes remote add web &lt;TAB&gt;</text>
+<rect x="40" y="128" width="240" height="84" rx="6" fill="#f4f4f4"/>
+<rect x="40" y="128" width="240" height="84" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="160.0" y="156.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">1  Find the spec</text>
+<text x="160.0" y="172.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">notes is a file on disk;</text>
+<text x="160.0" y="184.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">read .completions/notes</text>
+<text x="160.0" y="196.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">next to it, or above</text>
+<rect x="380" y="128" width="240" height="84" rx="6" fill="#f4f4f4"/>
+<rect x="380" y="128" width="240" height="84" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="500.0" y="156.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">2  Walk the typed words</text>
+<text x="500.0" y="172.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">remote : node [remote]</text>
+<text x="500.0" y="184.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">add    : node [remote add]</text>
+<text x="500.0" y="196.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">web    : positional 1</text>
+<rect x="720" y="128" width="240" height="84" rx="6" fill="#f4f4f4"/>
+<rect x="720" y="128" width="240" height="84" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="840.0" y="156.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">3  Look at the cursor</text>
+<text x="840.0" y="172.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">a non-flag word, and</text>
+<text x="840.0" y="184.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">a slot exists for it:</text>
+<text x="840.0" y="196.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">positional 2</text>
+<rect x="720" y="268" width="240" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="720" y="268" width="240" height="52" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="840.0" y="292.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[remote add #2]</text>
+<text x="840.0" y="308.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">offers @host: hostnames</text>
+<line x1="32" y1="336" x2="968" y2="336" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="32" y="356" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="120" y="350" width="16" height="12" rx="3" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="144" y="360" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the section TAB reads</text>
+<rect x="340" y="350" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="364" y="360" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">step</text>
+</svg>
+        <figcaption>Find the spec from the command's own file, walk the words already typed, then pick one section for the word under the cursor. Here the cursor is on the second positional of <code>remote add</code>.</figcaption>
+      </figure>
+    </section>
 
     <section>
       <p class="eyebrow">Tree &middot; shape</p>
@@ -119,6 +171,72 @@
 <text x="648" y="348" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">leaf: flag values or a positional slot</text>
 </svg>
         <figcaption>Each box is a <code>[path]</code> section of a docker-shaped spec. <code>[*]</code> is merged into every node. Leaves are flag-value sections and positional slots; <code>@endopts</code> on <code>[run]</code> hands everything after the image to the container.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <p class="eyebrow">Walk &middot; counting</p>
+      <h2>Counting positional arguments</h2>
+      <figure>
+<svg viewBox="0 0 1000 316" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-slots-title spec-slots-desc">
+<title id="spec-slots-title">dircomp: counting positional arguments</title>
+<desc id="spec-slots-desc">Reading notes remote add web TAB left to right: remote and add descend into nodes, web is positional 1, so the cursor is on slot 2 of the remote add node.</desc>
+<defs>
+<marker id="spec-slots-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="spec-slots-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M230 76 H270" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M470 76 H510" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M710 76 H750" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M130 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M370 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M610 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M850 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<rect x="30" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="30" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="130.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">remote</text>
+<text x="130.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">typed word</text>
+<rect x="270" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="270" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="370.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">add</text>
+<text x="370.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">typed word</text>
+<rect x="510" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="510" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="610.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">web</text>
+<text x="610.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">typed word</text>
+<rect x="750" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="750" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="850.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;TAB&gt;</text>
+<text x="850.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">word at cursor</text>
+<rect x="30" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="30" y="176" width="200" height="76" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="130.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
+<text x="130.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">P = [remote]</text>
+<text x="130.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = 0</text>
+<rect x="270" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="270" y="176" width="200" height="76" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="370.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
+<text x="370.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">P = [remote add]</text>
+<text x="370.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = 0</text>
+<rect x="510" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="510" y="176" width="200" height="76" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="610.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional 1</text>
+<text x="610.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">P = [remote add]</text>
+<text x="610.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = 1</text>
+<rect x="750" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="750" y="176" width="200" height="76" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="850.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">cursor: slot #2</text>
+<text x="850.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[remote add #2]</text>
+<text x="850.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k + 1 = 2</text>
+<line x1="32" y1="268" x2="968" y2="268" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="32" y="288" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="120" y="282" width="16" height="12" rx="3" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="144" y="292" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the section TAB reads</text>
+<rect x="340" y="282" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="364" y="292" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">step</text>
+</svg>
+        <figcaption>Words that name a node move <code>P</code> and reset <code>k</code>. Any other word is a positional and raises <code>k</code>. The cursor then reads slot <code>k + 1</code>.</figcaption>
       </figure>
     </section>
 
@@ -276,7 +394,7 @@
       </figure>
     </section>
 
-    <footer>Drawn with the diagram-design skill. Standalone files: spec-tree.svg, spec-walk.svg, spec-classify.svg.</footer>
+    <footer>Drawn with the diagram-design skill. Standalone files: spec-howitworks.svg, spec-tree.svg, spec-slots.svg, spec-walk.svg, spec-classify.svg.</footer>
   </div>
 </body>
 </html>

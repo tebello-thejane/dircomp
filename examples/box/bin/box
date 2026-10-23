@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# box — a pretend container runner: prints what it would run, runs nothing.
+# One of the finished examples in docs/MANUAL.md. It mirrors `docker run`'s
+# shape: flags, then an image, then the command line, which belongs to the
+# container and may itself contain flags.
+set -euo pipefail
+
+die() { echo "box: $*" >&2; exit 2; }
+
+declare -A opt=()
+pos=() ports=() envs=() mounts=()
+host=
+endopts=0
+
+# Value-taking flags. Short ones may be attached (-p8080:80) or be the last
+# letter of a cluster (-itp 8080:80).
+long_val=" --name --restart --network --pull --format --host "
+short_val="peHvw"
+
+take() {  # take FLAG VALUE
+  case $1 in
+    -p) ports+=("$2") ;; -e) envs+=("$2") ;; -v) mounts+=("$2") ;;
+    -H|--host) host=$2 ;; *) opt[$1]=$2 ;;
+  esac
+}
+
+while (($#)); do
+  a=$1; shift
+  # `run` ends its flags at the image: from there on, every word is the
+  # container's command line.
+  if ((endopts)) && ((${#pos[@]} >= 2)); then pos+=("$a"); continue; fi
+  case $a in
+    --*=*) take "${a%%=*}" "${a#*=}" ;;
+    --?*)
+      if [[ $long_val == *" $a "* ]]; then
+        (($#)) || die "$a needs a value"; take "$a" "$1"; shift
+      else opt[$a]=1; fi ;;
+    -[a-zA-Z]*)
+      for ((i = 1; i < ${#a}; i++)); do
+        c=${a:i:1}
+        if [[ $short_val == *"$c"* ]]; then
+          if ((i + 1 < ${#a})); then take "-$c" "${a:i+1}"
+          else (($#)) || die "-$c needs a value"; take "-$c" "$1"; shift; fi
+          break
+        fi
+        opt[-$c]=1
+      done ;;
+    *) pos+=("$a")
+       [[ ${pos[0]} == run ]] && endopts=1 ;;
+  esac
+done
+
+((${#pos[@]})) || die "usage: box [-H HOST] run|ps|rm|images ..."
+[[ -z $host ]] || echo "daemon:   $host"
+
+case ${pos[0]} in
+  run)
+    ((${#pos[@]} >= 2)) || die "run needs an image"
+    image=${pos[1]} cmd=("${pos[@]:2}")
+    echo "image:    $image"
+    echo "name:     ${opt[--name]:-(random)}"
+    echo "restart:  ${opt[--restart]:-no}"
+    echo "network:  ${opt[--network]:-bridge}"
+    echo "detached: $([[ -n ${opt[-d]:-} ]] && echo yes || echo no)"
+    echo "ports:    ${ports[*]:-none}"
+    echo "env:      ${envs[*]:-none}"
+    echo "mounts:   ${mounts[*]:-none}"
+    echo "command:  ${cmd[*]:-(image default)}" ;;
+  ps)     echo "list containers${opt[-a]:+, including stopped}" ;;
+  rm)     ((${#pos[@]} >= 2)) || die "rm needs a container"
+          echo "remove ${pos[*]:1}${opt[-f]:+ (forced)}" ;;
+  images) echo "list images" ;;
+  *) die "unknown command ${pos[0]}" ;;
+esac

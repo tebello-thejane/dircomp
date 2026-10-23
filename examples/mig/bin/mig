@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# mig — database migrations as a dry run: prints the plan, changes nothing.
+# One of the finished examples in docs/MANUAL.md: bare-flag clusters (-vn),
+# value flags with nothing to offer, a variadic file slot, and one command
+# written out twice under two names.
+set -euo pipefail
+
+die() { echo "mig: $*" >&2; exit 2; }
+
+declare -A opt=()
+pos=()
+long_val=" --env --dir --steps --to --kind --format "
+
+while (($#)); do
+  a=$1; shift
+  case $a in
+    --*=*) opt[${a%%=*}]=${a#*=} ;;
+    --?*)
+      if [[ $long_val == *" $a "* ]]; then
+        (($#)) || die "$a needs a value"; opt[$a]=$1; shift
+      else opt[$a]=1; fi ;;
+    -[a-zA-Z]*) for ((i = 1; i < ${#a}; i++)); do opt[-${a:i:1}]=$((${opt[-${a:i:1}]:-0} + 1)); done ;;
+    *) pos+=("$a") ;;
+  esac
+done
+
+((${#pos[@]})) || die "usage: mig [--env E] [-vn] new|up|migrate|down|apply|status ..."
+cmd=${pos[0]}
+env=${opt[--env]:-dev}
+dry=; [[ -z ${opt[-n]:-} ]] || dry=" (dry run)"
+loud=${opt[-v]:-0}
+
+((loud > 1)) && echo "mig: environment $env, verbosity $loud" >&2
+
+case $cmd in
+  new)
+    [[ -n ${pos[1]:-} ]] || die "new NAME"
+    echo "create ${opt[--kind]:-sql} migration '${pos[1]}'" ;;
+  up|migrate)
+    echo "[$env] apply ${opt[--steps]:-all pending} migration(s)${opt[--to]:+ up to ${opt[--to]}}$dry" ;;
+  down)
+    echo "[$env] revert ${opt[--steps]:-1} migration(s)${opt[--force]:+, forced}$dry" ;;
+  apply)
+    ((${#pos[@]} >= 2)) || die "apply FILE..."
+    for f in "${pos[@]:1}"; do echo "[$env] run $f$dry"; done ;;
+  status) echo "[$env] status as ${opt[--format]:-table}" ;;
+  *) die "unknown command $cmd" ;;
+esac

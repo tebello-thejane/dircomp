@@ -56,7 +56,9 @@ mkdir -p .completions
 $EDITOR .completions/mycommand
 ```
 
-See [SPEC.md](SPEC.md) for the file format. Then, from anywhere:
+New here? Start with the [manual](docs/MANUAL.md): a tutorial and four
+finished example tools. [SPEC.md](SPEC.md) is the reference for the file
+format. Then, from anywhere:
 
 ```
 $ ~/proj/bin/mycommand <TAB>

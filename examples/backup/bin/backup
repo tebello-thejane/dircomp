@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# backup — backups as a dry run: prints the plan, copies nothing.
+# One of the finished examples in docs/MANUAL.md: positional slots that mean
+# different things (a directory, then a host), @dir, @host and @user kinds,
+# and --flag=value.
+set -euo pipefail
+
+die() { echo "backup: $*" >&2; exit 2; }
+
+declare -A opt=()
+pos=() excludes=()
+long_val=" --exclude --compress --as --at "
+
+while (($#)); do
+  a=$1; shift
+  case $a in
+    --exclude=*) excludes+=("${a#*=}") ;;
+    --exclude)   (($#)) || die "--exclude needs a value"; excludes+=("$1"); shift ;;
+    --*=*) opt[${a%%=*}]=${a#*=} ;;
+    --?*)
+      if [[ $long_val == *" $a "* ]]; then
+        (($#)) || die "$a needs a value"; opt[$a]=$1; shift
+      else opt[$a]=1; fi ;;
+    -[a-zA-Z]*) for ((i = 1; i < ${#a}; i++)); do opt[-${a:i:1}]=1; done ;;
+    *) pos+=("$a") ;;
+  esac
+done
+
+((${#pos[@]})) || die "usage: backup run|restore|verify|hosts ..."
+cmd=${pos[0]} a1=${pos[1]:-} a2=${pos[2]:-}
+user=${opt[--as]:-$USER}
+dry=; [[ -z ${opt[-n]:-} ]] || dry=" (dry run)"
+
+case $cmd in
+  run)
+    [[ -n $a1 && -n $a2 ]] || die "run SOURCE-DIR HOST"
+    echo "back up $a1 to $user@$a2, compression ${opt[--compress]:-zstd}$dry"
+    ((${#excludes[@]})) && echo "  excluding: ${excludes[*]}"
+    : ;;
+  restore)
+    [[ -n $a1 ]] || die "restore HOST [DEST-DIR]"
+    echo "restore ${opt[--at]:-latest} from $user@$a1 into ${a2:-.}$dry" ;;
+  verify)
+    [[ -n $a1 ]] || die "verify HOST"
+    echo "verify the newest backup on $a1${opt[--deep]:+, re-reading every block}" ;;
+  hosts) echo "known hosts: $(grep -v '^#' "${HOSTFILE:-/etc/hosts}" 2>/dev/null | awk 'NF > 1 {print $2}' | sort -u | tr '\n' ' ')" ;;
+  *) die "unknown command $cmd" ;;
+esac

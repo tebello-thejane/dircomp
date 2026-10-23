@@ -1,0 +1,83 @@
+# backup: completion spec for examples/backup/bin/backup.
+#
+#   backup run [--exclude P]... [--compress M] [--as USER] SOURCE-DIR HOST
+#   backup restore [--at WHEN] [--as USER] HOST [DEST-DIR]
+#   backup verify [--deep] HOST
+#   backup hosts
+#
+# What this one shows: positional slots that mean different things at
+# different nodes (a directory, then a host; a host, then a directory),
+# and the @dir, @host and @user kinds side by side.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+run
+restore
+verify
+hosts
+--help
+
+# --- global: merged into every node ----------------------------------
+[*]
+-v
+-n
+
+# --- backup run ----------------------------------------------------------
+[run]
+--exclude
+--compress
+--as
+
+# --exclude takes a pattern: free text, so empty. The header must still
+# exist, or the pattern would be counted as SOURCE-DIR.
+[run --exclude]
+
+[run --compress]
+none
+gzip
+zstd
+
+# @user offers login names.
+[run --as]
+@user
+
+# The slots count from 1, in the order the words are typed:
+# `backup run SOURCE-DIR HOST`
+[run #1]
+@dir
+
+[run #2]
+@host
+
+# --- backup restore ------------------------------------------------------
+[restore]
+--at
+--as
+
+[restore --at]
+latest
+yesterday
+last-week
+
+[restore --as]
+@user
+
+# `backup restore HOST [DEST-DIR]`: the opposite order to `run`. The slot
+# numbers are per node, so the same #1 can mean something else here.
+[restore #1]
+@host
+
+[restore #2]
+@dir
+
+# --- backup verify -------------------------------------------------------
+[verify]
+--deep
+
+[verify #1]
+@host
+
+# Not expressible: `backup run SOURCE... HOST` (several sources, then a last
+# one that is the host). A slot cannot know it is the last, so backup takes
+# one source directory.

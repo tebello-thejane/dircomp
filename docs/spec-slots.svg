@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 316" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-slots-title spec-slots-desc">
+<title id="spec-slots-title">dircomp: counting positional arguments</title>
+<desc id="spec-slots-desc">Reading notes remote add web TAB left to right: remote and add descend into nodes, web is positional 1, so the cursor is on slot 2 of the remote add node.</desc>
+<defs>
+<style>@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap');</style>
+<marker id="spec-slots-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="spec-slots-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M230 76 H270" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M470 76 H510" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M710 76 H750" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M130 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M370 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M610 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<path d="M850 104 V176" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-slots-arrow)"/>
+<rect x="30" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="30" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="130.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">remote</text>
+<text x="130.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">typed word</text>
+<rect x="270" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="270" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="370.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">add</text>
+<text x="370.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">typed word</text>
+<rect x="510" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="510" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="610.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">web</text>
+<text x="610.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">typed word</text>
+<rect x="750" y="48" width="200" height="56" rx="6" fill="#f4f4f4"/>
+<rect x="750" y="48" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="850.0" y="74.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;TAB&gt;</text>
+<text x="850.0" y="90.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">word at cursor</text>
+<rect x="30" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="30" y="176" width="200" height="76" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="130.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
+<text x="130.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">P = [remote]</text>
+<text x="130.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = 0</text>
+<rect x="270" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="270" y="176" width="200" height="76" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="370.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
+<text x="370.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">P = [remote add]</text>
+<text x="370.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = 0</text>
+<rect x="510" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="510" y="176" width="200" height="76" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="610.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional 1</text>
+<text x="610.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">P = [remote add]</text>
+<text x="610.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = 1</text>
+<rect x="750" y="176" width="200" height="76" rx="6" fill="#f4f4f4"/>
+<rect x="750" y="176" width="200" height="76" rx="6" fill="#da6a07" fill-opacity="0.08" stroke="#da6a07" stroke-width="1"/>
+<text x="850.0" y="206.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">cursor: slot #2</text>
+<text x="850.0" y="222.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[remote add #2]</text>
+<text x="850.0" y="234.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k + 1 = 2</text>
+<line x1="32" y1="268" x2="968" y2="268" stroke="#2d2d3b" stroke-opacity="0.12" stroke-width="0.8"/>
+<text x="32" y="288" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="120" y="282" width="16" height="12" rx="3" fill="#da6a07" fill-opacity="0.08" stroke="#da6a07" stroke-width="1"/>
+<text x="144" y="292" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the section TAB reads</text>
+<rect x="340" y="282" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="364" y="292" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">step</text>
+</svg>

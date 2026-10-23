@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+# notes — a small note keeper. The worked example for dircomp's tutorial
+# (docs/MANUAL.md): every flag, value and slot the completion spec offers is
+# one this script understands.
+set -euo pipefail
+
+dir=${NOTES_DIR:-$HOME/.notes}
+priority=normal sort=date format=md to= tagfilter= owner=
+verbose=0 force=0 json=0 quiet=0
+tags=() pos=() cmd=
+
+die() { echo "notes: $*" >&2; exit 1; }
+
+usage() {
+  cat <<'USAGE'
+usage: notes [--dir DIR] [-v] COMMAND ...
+  add [-t TAG]... [--priority=low|normal|high] TEXT
+  list [--tag TAG] [--sort=date|title] [--json]
+  show ID
+  import FILE...
+  rm [-f] ID...
+  export [--format=md|json|txt] [--to FILE]
+  remote add NAME HOST | remote rm NAME | remote list
+  with [-q] ID COMMAND [ARG...]     run COMMAND with the note in $NOTE
+USAGE
+}
+
+# One pass over the words, the same shape the completion reader walks. Flags
+# may appear at any node. The exception is `with`: once its ID has been seen
+# every later word is the command line, flags and all.
+while (($#)); do
+  a=$1; shift
+  if [[ $cmd == with && ${#pos[@]} -ge 1 ]]; then pos+=("$a"); continue; fi
+  case $a in
+    --dir|--priority|--sort|--format|--to|--tag)
+      (($#)) || die "$a needs a value"; name=${a#--}; val=$1; shift ;;
+    --dir=*|--priority=*|--sort=*|--format=*|--to=*|--tag=*)
+      name=${a%%=*}; name=${name#--}; val=${a#*=} ;;
+    --help) usage; exit 0 ;;
+    --json) json=1; continue ;;
+    -[a-zA-Z]*)               # a cluster: -v, -f, -qv, -tidea ...
+      rest=${a#-}
+      while [[ -n $rest ]]; do
+        c=${rest:0:1}; rest=${rest:1}
+        case $c in
+          v) verbose=1 ;;
+          f) force=1 ;;
+          q) quiet=1 ;;
+          t) if [[ -n $rest ]]; then tags+=("$rest"); rest=
+             else (($#)) || die "-t needs a value"; tags+=("$1"); shift; fi ;;
+          *) die "unknown flag -$c" ;;
+        esac
+      done
+      continue ;;
+    -*)
+      [[ $a == - ]] || die "unknown flag $a"
+      if [[ -z $cmd ]]; then cmd=$a; else pos+=("$a"); fi
+      continue ;;
+    *)
+      if [[ -z $cmd ]]; then cmd=$a; else pos+=("$a"); fi
+      continue ;;
+  esac
+  case $name in
+    dir) dir=$val ;;
+    priority) priority=$val ;;
+    sort) sort=$val ;;
+    format) format=$val ;;
+    to) to=$val ;;
+    tag) tagfilter=$val ;;
+  esac
+done
+
+mkdir -p "$dir"
+((verbose)) && echo "notes: using $dir" >&2
+
+next_id() {
+  local max=0 f n
+  for f in "$dir"/*.txt; do
+    [[ -e $f ]] || continue
+    n=${f##*/}; n=${n%.txt}; ((n > max)) && max=$n
+  done
+  echo $((max + 1))
+}
+
+note_ids() {
+  local f
+  for f in "$dir"/*.txt; do [[ -e $f ]] && { f=${f##*/}; echo "${f%.txt}"; }; done | sort -n
+}
+
+field() { sed -n "s/^$2: //p" "$dir/$1.txt" | head -n1; }
+body()  { sed '1,/^$/d' "$dir/$1.txt"; }
+
+case $cmd in
+  add)
+    [[ ${#pos[@]} -ge 1 ]] || die "add needs the note text"
+    id=$(next_id)
+    {
+      echo "date: $(date +%F)"
+      echo "priority: $priority"
+      echo "tags: ${tags[*]:-}"
+      echo "title: ${pos[0]}"
+      echo
+      echo "${pos[*]}"
+    } > "$dir/$id.txt"
+    echo "added $id" ;;
+  list)
+    for id in $(note_ids); do
+      [[ -z $tagfilter ]] || [[ " $(field "$id" tags) " == *" $tagfilter "* ]] || continue
+      printf '%s\t%s\t%s\t%s\n' "$(field "$id" "$( [[ $sort == title ]] && echo title || echo date)")" "$id" "$(field "$id" priority)" "$(field "$id" title)"
+    done | sort | cut -f2- | if ((json)); then
+      awk -F'\t' 'BEGIN{printf "["} {printf "%s{\"id\":%s,\"priority\":\"%s\",\"title\":\"%s\"}", (NR>1?",":""), $1, $2, $3} END{print "]"}'
+    else cat; fi ;;
+  show)
+    [[ ${#pos[@]} -eq 1 ]] || die "show needs one ID"
+    [[ -e $dir/${pos[0]}.txt ]] || die "no note ${pos[0]}"
+    cat "$dir/${pos[0]}.txt" ;;
+  rm)
+    [[ ${#pos[@]} -ge 1 ]] || die "rm needs at least one ID"
+    for id in "${pos[@]}"; do
+      [[ -e $dir/$id.txt ]] || die "no note $id"
+      if ((force)); then rm -- "$dir/$id.txt"; else rm -i -- "$dir/$id.txt"; fi
+    done ;;
+  import)
+    [[ ${#pos[@]} -ge 1 ]] || die "import needs at least one file"
+    for f in "${pos[@]}"; do
+      id=$(next_id)
+      {
+        echo "date: $(date +%F)"
+        echo "priority: $priority"
+        echo "tags: ${tags[*]:-}"
+        echo "title: $(head -n1 "$f")"
+        echo
+        cat "$f"
+      } > "$dir/$id.txt"
+      echo "imported $f as $id"
+    done ;;
+  export)
+    out=/dev/stdout; [[ -z $to ]] || out=$to
+    for id in $(note_ids); do
+      case $format in
+        md)   printf '## %s\n\n%s\n\n' "$(field "$id" title)" "$(body "$id")" ;;
+        txt)  printf '%s: %s\n' "$id" "$(field "$id" title)" ;;
+        json) printf '{"id":%s,"title":"%s"}\n' "$id" "$(field "$id" title)" ;;
+        *) die "unknown format $format" ;;
+      esac
+    done > "$out" ;;
+  remote)
+    remotes=$dir/remotes; touch "$remotes"
+    case ${pos[0]:-list} in
+      add) [[ ${#pos[@]} -eq 3 ]] || die "remote add NAME HOST"
+           echo "${pos[1]} ${pos[2]}" >> "$remotes" ;;
+      rm)  [[ ${#pos[@]} -eq 2 ]] || die "remote rm NAME"
+           grep -v "^${pos[1]} " "$remotes" > "$remotes.new" || true; mv "$remotes.new" "$remotes" ;;
+      list) cat "$remotes" ;;
+      *) die "unknown remote command ${pos[0]}" ;;
+    esac ;;
+  with)
+    [[ ${#pos[@]} -ge 2 ]] || die "with ID COMMAND [ARG...]"
+    id=${pos[0]}
+    [[ -e $dir/$id.txt ]] || die "no note $id"
+    ((quiet)) || echo "notes: running ${pos[*]:1} on note $id" >&2
+    NOTE=$(body "$id") exec "${pos[@]:1}" ;;
+  "") usage; exit 1 ;;
+  *) die "unknown command $cmd" ;;
+esac

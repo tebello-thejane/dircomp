@@ -35,7 +35,9 @@ root ── names: run rm ps        flags: --help
      └─ #*       containers
 ```
 
-The same diagrams as SVG, with the two flowcharts below, are on
+SVG versions of this tree and of the two flowcharts below are in `docs/`:
+[spec-tree.svg](docs/spec-tree.svg), [spec-walk.svg](docs/spec-walk.svg),
+[spec-classify.svg](docs/spec-classify.svg), and all on one page,
 [docs/spec-diagrams.html](docs/spec-diagrams.html).
 
 ## Grammar
@@ -205,6 +207,8 @@ flowchart TD
   N -->|no| POS
 ```
 
+SVG: [docs/spec-walk.svg](docs/spec-walk.svg).
+
 A pending flag takes the next word whatever it looks like, then clears. A
 lone `-` is a bare word; a lone `--` is a bare flag.
 
@@ -236,6 +240,8 @@ flowchart TD
   S -->|yes| SLOT["slot: P #k+1, else P #*"]
   S -->|no| NODE["node: P plus *, dash lines only if k >= 1"]
 ```
+
+SVG: [docs/spec-classify.svg](docs/spec-classify.svg).
 
 ## Examples
 

@@ -1,0 +1,119 @@
+# box: completion spec for examples/box/bin/box.
+#
+#   box [-H HOST] run [flags] IMAGE [COMMAND [ARG...]]
+#   box [-H HOST] ps | rm | images
+#
+# This is the shape of `docker run`: flags, then an image, then a command
+# line that belongs to the container and may contain flags of its own.
+#
+# What this one shows: @endopts, clusters like -itp 8080:80, image names
+# with colons, and a global flag whose value contains : and //.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+run
+ps
+rm
+images
+--help
+
+# --- global: merged into every node ----------------------------------
+[*]
+--host
+-H
+
+# --host and -H take a value (the daemon address, e.g. tcp://h:2375).
+# Free text, so empty: the header only declares that a value follows.
+[* --host]
+[* -H]
+
+# --- box run -------------------------------------------------------------
+[run]
+# @endopts: flags end at the first positional, which is the image. From
+# there on every word belongs to the container, dashes included, so
+# `box run ubuntu:24.04 sh -c ...` is not read as box flags.
+@endopts
+--name
+--restart
+--network
+--pull
+-d
+-i
+-t
+-p
+-e
+-v
+
+# --name takes free text.
+[run --name]
+
+[run --restart]
+no
+always
+on-failure
+unless-stopped
+
+[run --network]
+bridge
+host
+none
+
+[run --pull]
+always
+missing
+never
+
+# -p PORTS and -e NAME=VALUE take free text. Declaring them is what makes
+# clusters work: in `-itp 8080:80`, -i and -t are bare flags and -p is
+# last, so it takes the next word, 8080:80, as its value.
+[run -p]
+[run -e]
+
+# A bind mount starts with a host directory.
+[run -v]
+@dir
+
+# #1 is the image. The colons are why words are rejoined: typed as
+# `ubuntu:2`, bash would see three words.
+[run #1]
+alpine:3.20
+busybox:latest
+ubuntu:22.04
+ubuntu:24.04
+
+# #2 is the command to run in the container.
+[run #2]
+sh
+bash
+env
+
+# #* is every word after that: the command's arguments. Empty, so bash
+# offers files.
+[run #*]
+
+# --- the other commands -------------------------------------------------
+# `box rm` has no @endopts, so flags are still offered after positionals.
+[ps]
+-a
+-q
+--format
+
+[ps --format]
+table
+json
+
+[rm]
+-f
+-v
+
+# `box rm CONTAINER...`
+[rm #*]
+
+[images]
+-a
+--format
+
+[images --format]
+table
+json

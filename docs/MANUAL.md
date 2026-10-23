@@ -1,0 +1,1351 @@
+<!-- Generated from docs/MANUAL.md.in by docs/build-manual.py. Edit the .in file. -->
+
+# dircomp manual
+
+A hands-on guide to writing `.completions` files. [SPEC.md](../SPEC.md) is the
+reference: every rule, stated once. This manual is the other half. You build
+a completion spec step by step, see what TAB does at each step, and finish
+with four real tools to copy from.
+
+Every table below is a test. `test/tab.py` presses a real TAB in a real bash
+for each row, against the files in [`examples/`](../examples), so the manual
+cannot drift from the reader.
+
+## Contents
+
+1. [Before you start](#before-you-start)
+2. [How it works in one minute](#how-it-works-in-one-minute)
+3. [Tutorial: completions for `notes`](#tutorial-completions-for-notes)
+4. [When TAB does something odd](#when-tab-does-something-odd)
+5. [Four finished tools](#four-finished-tools): `ship`, `box`, `backup`, `mig`
+6. [Cheat sheet](#cheat-sheet)
+
+## Before you start
+
+Install dircomp ([README](../README.md#install)), then open a new shell.
+To follow along without writing anything, work from a checkout:
+
+```sh
+git clone https://github.com/tebello-thejane/dircomp
+cd dircomp
+examples/notes/bin/notes <TAB>
+```
+
+The tools in `examples/` are real scripts. They print what they would do and
+change nothing, except `notes`, which keeps small files under `~/.notes` (or
+`$NOTES_DIR`).
+
+Two things to know first:
+
+- **Type the path to the script.** dircomp finds the spec from the file the
+  command word points to, so `examples/notes/bin/notes` works, and so does a
+  bare `notes` once its `bin/` is on your `PATH`.
+- **Commands bash-completion already knows are ignored.** If
+  `/usr/share/bash-completion/completions/` ships a file for your command
+  name, that completion wins and your spec is never read. A first draft of
+  the `backup` example below was called `bk`, which bash-completion
+  completes for BitKeeper. Nothing in dircomp told us; the spec was just
+  silent. Check a name with
+  `ls /usr/share/bash-completion/completions | grep -x yourname`.
+
+## How it works in one minute
+
+When you press TAB after a command, dircomp does three things.
+
+```text
+ notes remote add web <TAB>
+   │
+   ├─ 1. Find the spec. Resolve `notes` to its file, then look for
+   │     .completions/notes in that file's directory and upwards.
+   │
+   ├─ 2. Walk the words you have already typed, left to right.
+   │     remote   →  go into the node [remote]
+   │     add      →  go into the node [remote add]
+   │     web      →  the first positional argument
+   │
+   └─ 3. Look at the word under the cursor and pick one section:
+         [remote add #2]   "the second positional" (the next one)
+```
+
+Drawn as SVG: [spec-howitworks.svg](spec-howitworks.svg).
+
+A spec is a list of **sections**. A section is a header in square brackets and
+the lines under it. Each line is one candidate, offered exactly as written.
+
+```text
+[remote add #2]      ← the header: where this section applies
+@host                ← a candidate source: hostnames
+```
+
+There are four kinds of header:
+
+| header | meaning |
+| --- | --- |
+| `[remote]` | a **node**: the names and flags offered at `notes remote` |
+| `[remote --prune]` | the **values** of the flag `--prune` at that node |
+| `[remote add #2]` | the **second positional** at that node (`#*`: any other) |
+| `[*]` | the **global** node: merged into every node |
+
+Lines above the first header belong to the root, the command itself.
+
+**Comments.** A line whose first non-blank character is `#` is ignored, and so
+are blank lines. A comment must be on a line of its own: `--json  # raw` is
+one candidate, spelt exactly that. Comment freely. The specs in this manual
+are commented the way you should comment yours: a header block saying what
+the command looks like, and a line above each section saying why it is there.
+
+The walk and the cursor rules, drawn out:
+[docs/spec-diagrams.html](spec-diagrams.html).
+
+> When a section has nothing to offer, or does not exist, bash falls back to
+> its own completion, which is filenames. This is why "files" shows up so
+> often below. It is not an error; it means the spec has nothing to say here.
+
+## Tutorial: completions for `notes`
+
+`notes` is a small note keeper. Run `examples/notes/bin/notes --help` to see
+all of it:
+
+```text
+notes [--dir DIR] [-v] COMMAND ...
+  add [-t TAG]... [--priority=low|normal|high] TEXT
+  list [--tag TAG] [--sort=date|title] [--json]
+  show ID
+  import FILE...
+  rm [-f] ID...
+  export [--format=md|json|txt] [--to FILE]
+  remote add NAME HOST | remote rm NAME | remote list
+  with [-q] ID COMMAND [ARG...]
+```
+
+You will write its completion in eleven steps. Each step's spec is saved in
+[`examples/notes/stages/`](../examples/notes/stages), so you can jump in
+anywhere. Step 11 is exactly `examples/notes/.completions/notes`.
+
+To work live, make a scratch project:
+
+```sh
+mkdir -p mynotes/bin mynotes/.completions
+cp examples/notes/bin/notes mynotes/bin/
+$EDITOR mynotes/.completions/notes      # type each step in here
+mynotes/bin/notes <TAB>                 # there is no reload step
+```
+
+A spec is read afresh on every TAB, so save, press TAB, see the change.
+
+Every stage file is commented. The snippets below are the real diffs between
+stage files, comments included: copy a snippet, and you have the lines and
+the explanation of them.
+
+### Step 1: command names
+
+Lines with no header are candidates at the root. One word per line.
+
+```text
+# notes: completion spec for examples/notes/bin/notes.
+#
+# Where it lives: .completions/notes, in the directory above the script's
+# bin/. There is nothing to load; it is read afresh on every TAB.
+#
+# Comments: a line whose first character (after any spaces) is # is ignored,
+# and so are blank lines. Comments must be on their own line.
+#
+# Lines above the first [header] belong to the root: what to offer straight
+# after `notes`. One candidate per line, offered exactly as written.
+# The subcommand names.
+add
+list
+show
+rm
+import
+export
+remote
+with
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes ` | `add list show rm import export remote with` |
+| `notes li` | completes to `notes list ` (the only match) |
+| `notes list ` | your files: `list` has no section yet |
+
+The last row is the first thing to understand. `list` is a word the spec
+has no section for, so there is nothing to offer after it and bash steps in.
+
+### Step 2: flags are just lines
+
+A flag is a candidate that happens to start with `-`. Add `--help` to the
+root:
+
+```diff
+ ...
+ with
++
++# A flag is just a candidate that starts with a dash.
++--help
+```
+
+`notes <TAB>` now offers the names *and* `--help`. There is no flag syntax to
+learn at this point.
+
+### Step 3: a section per command
+
+Give a command its own section. The header names it; the lines are what to
+offer after it.
+
+```diff
+ ...
+ --help
++
++# A [header] is a node: what to offer after `notes add`.
++[add]
++--priority
++
++# After `notes list`. Lines starting with a dash are flags.
++[list]
++--tag
++--sort
++--json
++
++# After `notes export`.
++[export]
++--format
++--to
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes list ` | `--tag --sort --json` |
+| `notes list --tag ` | `--tag --sort --json` again |
+
+The second row is wrong, and it is the most common mistake. `--tag` takes a
+value (`notes list --tag idea`), but the spec has not said so. dircomp thinks
+`--tag` is a switch, finished, and offers the node's flags again. Step 4
+fixes it.
+
+### Step 4: say which flags take a value
+
+A flag that takes a value needs its own header, `[command --flag]`. The
+lines below are the values to offer.
+
+```diff
+ ...
+ 
++# [node --flag]: the header says --priority takes a value.
++# The lines under it are the values to offer.
++[add --priority]
++low
++normal
++high
++
+ # After `notes list`. Lines starting with a dash are flags.
+ ...
+ 
++# --tag takes a value, but there is nothing fixed to suggest, so this
++# section is empty. An empty header still declares the flag, so the
++# word after --tag is read as its value.
++[list --tag]
++
++# Values for --sort.
++[list --sort]
++date
++title
++
+ # After `notes export`.
+ ...
+ --to
++
++# Values for --format.
++[export --format]
++md
++txt
++json
++
++# --to takes a value (a file, see the next step).
++[export --to]
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes add --priority ` | `low normal high` |
+| `notes list --sort ` | `date title` |
+| `notes list --tag ` | your files |
+
+`[list --tag]` has no lines, and that is on purpose. An empty header means
+"this flag takes a value, and I have nothing fixed to suggest". The word
+after `--tag` is now its value, so counting stays right, and bash offers
+filenames.
+
+**The rule:** every flag that takes a value gets a header, even an empty
+one. Without it, the value is mistaken for a positional argument and
+everything after it is misread.
+
+### Step 5: `@file`, `@dir`, `@user`, `@host`
+
+Four lines are not literal candidates but ask bash for a kind of thing:
+
+| line | offers |
+| --- | --- |
+| `@file` | files in the current directory |
+| `@dir` | directories only |
+| `@user` | login names |
+| `@host` | hostnames, from `$HOSTFILE` or `/etc/hosts` |
+
+They are fixed. The spec chooses the kind and cannot pass it anything, so a
+spec can never run a command. Mix them freely with literal lines.
+
+```diff
+ ...
+ 
+-# --to takes a value (a file, see the next step).
++# @file offers files in the current directory. The kinds are @file,
++# @dir (directories), @user (login names) and @host (hostnames).
+ [export --to]
++@file
+```
+
+You also get `--flag=value` without writing anything:
+
+| you type | TAB gives |
+| --- | --- |
+| `notes export --to ` | files |
+| `notes export --format=` | `md txt json` |
+| `notes export --format=m` | completes to `--format=md ` |
+
+Candidates are always bare values. Never write `--format=md` in a spec.
+
+### Step 6: nesting
+
+A subcommand's names are literal lines in its parent's section. Its own
+section is the parent's path plus the name.
+
+```diff
+ ...
+ @file
++
++# A subcommand's own names are literal lines in its parent: these are
++# the words after `notes remote`.
++[remote]
++add
++rm
++list
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes remote ` | `add rm list` |
+| `notes remote add ` | your files: `[remote add]` does not exist yet |
+
+Going deeper than one level is the same move again: `[remote add]`,
+`[remote add --force]`. There is no depth limit.
+
+### Step 7: positional arguments
+
+Arguments that are not flags are **positional**, counted from 1 at each
+node. `[node #1]` is the first, `[node #2]` the second, and `[node #*]` is
+every other one with no number of its own.
+
+```diff
+ ...
+ 
++# `notes add TEXT`: free text.
++[add #1]
++
+ # After `notes list`. Lines starting with a dash are flags.
+ ...
+ title
++
++# `notes show ID`: ids change, so a spec cannot list them.
++[show #1]
++
++# #* is every positional that has no #N of its own: `rm ID...`.
++[rm #*]
++
++# `notes import FILE...`: any number of files.
++[import #*]
++@file
+ 
+ ...
+ list
++
++# [node #N] is the Nth positional (a non-flag word), counted from 1.
++# `notes remote add NAME HOST`: NAME is #1, a name you make up, so the
++# section is empty. An empty slot still counts the word.
++[remote add #1]
++
++# HOST is #2.
++[remote add #2]
++@host
++
++# `notes remote rm NAME`: free text.
++[remote rm #1]
+```
+
+`notes remote add NAME HOST` has two arguments with different meanings. The
+reader counts for you:
+
+```text
+notes remote add web <TAB>
+      │      │   │
+      │      │   └─ the first positional is already typed,
+      │      │      so the cursor is on #2  →  [remote add #2]
+      │      └───── descends into [remote add]
+      └──────────── descends into [remote]
+```
+
+Drawn as SVG: [spec-slots.svg](spec-slots.svg).
+
+| you type | TAB gives |
+| --- | --- |
+| `notes remote add ` | files (`#1` is a name you invent: empty, free text) |
+| `notes remote add web ` | `alpha.example beta.example` (hostnames) |
+| `notes remote add web alpha.example ` | files: there is no `#3` and no `#*` |
+| `notes import alpha.txt ` | files (`#*` covers every argument) |
+
+Notice `notes add ` offers files, not `--priority`. Once a slot exists for
+the cursor, flags stay hidden until you type a dash. Type `notes add -` to
+see them.
+
+### Step 8: global flags
+
+`[*]` is merged into every node. Put flags every command accepts there, and
+their values in `[* --flag]`.
+
+```diff
+ ...
+ --help
++
++# Global: merged into every node. Flags every command accepts go here.
++[*]
++--dir
++-v
++
++# Values for --dir, wherever it appears.
++[* --dir]
++@dir
+ 
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes ` | the names, `--help`, `--dir`, `-v` |
+| `notes list ` | `--tag --sort --json --dir -v` |
+| `notes --dir ` | directories |
+
+If a node has its own section for a flag, that one **replaces** the global
+one for that flag. They are not merged. See `ship release rollback
+--profile` below.
+
+### Step 9: short flags and clusters
+
+Short flags (`-t`, `-v`) work the same way. A **single dash always means one
+character**: `-vt` is the flags `-v` and `-t`, never a flag called `vt`.
+
+```diff
+ ...
+ 
+-# A [header] is a node: what to offer after `notes add`.
++# A single dash is exactly one character: -t is a flag, and -vt is
++# the two flags -v and -t, never a flag called "vt".
+ [add]
+ --priority
++-t
+ 
+ ...
+ high
++
++# Values for -t. Declared the same way as a long flag.
++[add -t]
++idea
++todo
++bug
+ 
+ ...
+ [show #1]
++
++# After `notes rm`.
++[rm]
++-f
+ 
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes add -` | `--priority -t --dir -v` |
+| `notes add -t ` | `idea todo bug` |
+| `notes add -vt ` | `idea todo bug`: `-v` is bare, `-t` is last so it waits for its value |
+| `notes add -tidea -` | `--priority -t --dir -v`: `idea` was attached, nothing is pending |
+| `notes rm 1 -` | `-f --dir -v` |
+
+The last row also shows a rule: once a positional has been typed, a node
+offers only its dash lines, never its subcommand names.
+
+### Step 10: `@endopts`, for commands that wrap other commands
+
+`notes with 3 grep -i foo` runs `grep -i foo`. After the id, `-i` is `grep`'s
+flag, not `notes`'. Say so with `@endopts`:
+
+```diff
+ ...
+ [remote rm #1]
++
++# `notes with ID COMMAND [ARG...]` runs COMMAND, so everything after
++# the ID belongs to COMMAND, flags included. @endopts says: at this
++# node, flags end at the first positional.
++[with]
++@endopts
++-q
++
++# The note id.
++[with #1]
++
++# The command.
++[with #2]
++grep
++wc
++less
++
++# The command's own arguments.
++[with #*]
++@file
+```
+
+`@endopts` means: **at this node, flags end at the first positional.** From
+then on every word is a positional, dashes included. It is the same rule
+`docker run IMAGE --foo` follows.
+
+| you type | TAB gives |
+| --- | --- |
+| `notes with ` | files (slot `#1`, the id) |
+| `notes with -` | `-q --dir -v` (still before the first positional) |
+| `notes with 3 ` | `grep wc less` |
+| `notes with 3 grep --` | nothing: `--` is just a word for `grep` |
+| `notes with 3 grep -i ` | files |
+
+`@endopts` is not a candidate. It is ignored anywhere except a `[node]`
+section.
+
+### Step 11: values with colons
+
+bash splits words at `=` and `:`, which would turn `team:alpha` into three
+words. dircomp puts them back together before reading anything. Add some
+tags with colons:
+
+```diff
+ ...
+ 
+-# Values for -t. Declared the same way as a long flag.
++# Values may contain colons. bash splits words at : and =, and dircomp
++# joins them back, so team:alpha is one value.
+ [add -t]
+ ...
+ bug
++team:alpha
++team:beta
+ 
+ ...
+ 
+-# --tag takes a value, but there is nothing fixed to suggest, so this
+-# section is empty. An empty header still declares the flag, so the
+-# word after --tag is read as its value.
++# Values for --tag.
+ [list --tag]
++idea
++todo
++bug
++team:alpha
++team:beta
+ 
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `notes add -t t` | `todo team:alpha team:beta` |
+| `notes add -t team:` | `alpha beta` |
+| `notes add -t team:a` | completes to `team:alpha ` |
+| `notes list --tag=team:` | `alpha beta` |
+
+Once you have typed a colon, readline only replaces what comes after it, so
+dircomp offers just `alpha beta`. Write the spec lines in full.
+
+### The finished spec
+
+```text
+# notes: completion spec for examples/notes/bin/notes.
+#
+# Where it lives: .completions/notes, in the directory above the script's
+# bin/. There is nothing to load; it is read afresh on every TAB.
+#
+# Comments: a line whose first character (after any spaces) is # is ignored,
+# and so are blank lines. Comments must be on their own line.
+#
+# Lines above the first [header] belong to the root: what to offer straight
+# after `notes`. One candidate per line, offered exactly as written.
+# The subcommand names.
+add
+list
+show
+rm
+import
+export
+remote
+with
+
+# A flag is just a candidate that starts with a dash.
+--help
+
+# Global: merged into every node. Flags every command accepts go here.
+[*]
+--dir
+-v
+
+# Values for --dir, wherever it appears.
+[* --dir]
+@dir
+
+# A single dash is exactly one character: -t is a flag, and -vt is
+# the two flags -v and -t, never a flag called "vt".
+[add]
+--priority
+-t
+
+# [node --flag]: the header says --priority takes a value.
+# The lines under it are the values to offer.
+[add --priority]
+low
+normal
+high
+
+# Values may contain colons. bash splits words at : and =, and dircomp
+# joins them back, so team:alpha is one value.
+[add -t]
+idea
+todo
+bug
+team:alpha
+team:beta
+
+# `notes add TEXT`: free text.
+[add #1]
+
+# After `notes list`. Lines starting with a dash are flags.
+[list]
+--tag
+--sort
+--json
+
+# Values for --tag.
+[list --tag]
+idea
+todo
+bug
+team:alpha
+team:beta
+
+# Values for --sort.
+[list --sort]
+date
+title
+
+# `notes show ID`: ids change, so a spec cannot list them.
+[show #1]
+
+# After `notes rm`.
+[rm]
+-f
+
+# #* is every positional that has no #N of its own: `rm ID...`.
+[rm #*]
+
+# `notes import FILE...`: any number of files.
+[import #*]
+@file
+
+# After `notes export`.
+[export]
+--format
+--to
+
+# Values for --format.
+[export --format]
+md
+txt
+json
+
+# @file offers files in the current directory. The kinds are @file,
+# @dir (directories), @user (login names) and @host (hostnames).
+[export --to]
+@file
+
+# A subcommand's own names are literal lines in its parent: these are
+# the words after `notes remote`.
+[remote]
+add
+rm
+list
+
+# [node #N] is the Nth positional (a non-flag word), counted from 1.
+# `notes remote add NAME HOST`: NAME is #1, a name you make up, so the
+# section is empty. An empty slot still counts the word.
+[remote add #1]
+
+# HOST is #2.
+[remote add #2]
+@host
+
+# `notes remote rm NAME`: free text.
+[remote rm #1]
+
+# `notes with ID COMMAND [ARG...]` runs COMMAND, so everything after
+# the ID belongs to COMMAND, flags included. @endopts says: at this
+# node, flags end at the first positional.
+[with]
+@endopts
+-q
+
+# The note id.
+[with #1]
+
+# The command.
+[with #2]
+grep
+wc
+less
+
+# The command's own arguments.
+[with #*]
+@file
+```
+
+That is 144 lines (74 of spec, 45 of comments) for a nine-command tool with nesting, global flags, a
+wrapper command and colon values.
+
+## When TAB does something odd
+
+| you see | usual cause | fix |
+| --- | --- | --- |
+| Nothing from the spec, only files | no section for that position, or an empty one | add lines under the right header; check the header spelling |
+| Nothing at all, from a command that has a spec | bash-completion has its own completion for that name | rename the command, or accept it; dircomp never overrides |
+| The same flags offered again after `--flag ` | the flag has no `[node --flag]` header, so its value was counted as a positional | add the header, empty if need be |
+| Flags vanish after a word | that word was a positional; at a slot, flags need a leading `-` | type `-`, or check `@endopts` |
+| No flags offered after the image or command | `@endopts` on that node, by design | remove it if the command is not a wrapper |
+| `-name` offers nothing sensible | a single dash is one character; `-name` is four flags | use `--name` |
+| Candidates for a thing that changes (container names, ids) | not possible: a spec is fixed text | offer the fixed part (flags, enumerations), let bash do files |
+| Spec ignored entirely | the file is not at `.completions/<command>` next to the script, or it is unreadable | `ls -l` it; the name must be the script's basename |
+| A line you meant as a candidate is missing | it started with `#`, so it is a comment | candidates cannot start with `#` |
+| A trailing `# note` appears as part of a candidate | comments are whole lines only | move the comment to its own line |
+| A header does nothing | it has a longer single-dash token such as `[add -name]`, or a bad path | rewrite it as `[add --name]` |
+| `notes remote add ` offers files | the first positional of `remote add` is free text on purpose | not a bug |
+
+Two habits that find most problems: press TAB twice to see the whole list,
+and read the *section header* you expect to apply out loud as a path:
+"node `remote add`, the second positional".
+
+## Four finished tools
+
+Each tool is a working script in [`examples/`](../examples) with its spec in
+`.completions/`. The tables are the tested behaviour. Names are chosen so
+bash-completion has nothing for them.
+
+### `ship`: levels, globals, an override
+
+```text
+ship [--profile P] [--config FILE] [-n] env|release|host COMMAND ...
+```
+
+Shows three levels of subcommand (`release create`), global flags with their
+values, enumerated values, an `@user` value and a node overriding a global
+value set.
+
+```text
+# ship: completion spec for examples/ship/bin/ship.
+#
+#   ship [--profile P] [--config FILE] [-n] COMMAND ...
+#     env      list | show NAME | create NAME [--region R] [--from ENV]
+#     release  create VERSION | promote VERSION | rollback
+#     host     add NAME ADDRESS | rm NAME
+#
+# What this one shows: three levels of subcommand, global flags with values,
+# enumerated values, and a node overriding a global value set.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+# Lines before the first [header] are the root: what is offered right
+# after `ship`.
+env
+release
+host
+--help
+
+# --- global: merged into every node ----------------------------------
+[*]
+--config
+--profile
+-n
+
+# Values for --config, at every node: files.
+[* --config]
+@file
+
+# Values for --profile, at every node.
+[* --profile]
+dev
+staging
+prod
+
+# A node's own section for a flag REPLACES the global one; the two are
+# never merged. So `ship release rollback --profile=` offers only these two
+# and TAB never suggests prod for a rollback.
+[release rollback --profile]
+dev
+staging
+
+# --- ship env ----------------------------------------------------------
+[env]
+list
+show
+create
+
+# `ship env show NAME`: names are dynamic, so the slot is empty (free text).
+[env show #1]
+
+[env create]
+--region
+--from
+
+[env create --region]
+eu-west-1
+eu-central-1
+af-south-1
+
+# --from takes an environment name. Those change, so there is nothing fixed
+# to offer. The empty header still declares that --from takes a value;
+# without it, the value would be counted as a positional.
+[env create --from]
+
+# `ship env create NAME`
+[env create #1]
+
+# --- ship release ---------------------------------------------------------
+[release]
+create
+promote
+rollback
+
+[release create]
+--channel
+--notes
+
+[release create --channel]
+stable
+beta
+nightly
+
+[release create --notes]
+@file
+
+# `ship release create VERSION`. There is no #2, so after the version the
+# node's flags are offered again (try `ship release create 1.0 <TAB>`).
+[release create #1]
+
+[release promote]
+--to
+
+[release promote --to]
+dev
+staging
+prod
+
+# `ship release promote VERSION`
+[release promote #1]
+
+[release rollback]
+--to
+
+# Versions are dynamic: declared, nothing to offer.
+[release rollback --to]
+
+# --- ship host --------------------------------------------------------------
+[host]
+add
+rm
+
+[host add]
+--user
+--port
+
+# @user offers login names.
+[host add --user]
+@user
+
+[host add --port]
+22
+2222
+
+# `ship host add NAME ADDRESS`: NAME is #1 (free text), ADDRESS is #2.
+[host add #1]
+
+[host add #2]
+@host
+
+# `ship host rm NAME`
+[host rm #1]
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `ship ` | `env release host --help --config --profile -n` |
+| `ship --profile ` | `dev staging prod` |
+| `ship release promote --profile=` | `dev staging prod` (the global set) |
+| `ship release rollback --profile=` | `dev staging` (the node's own set replaces it) |
+| `ship release create --channel ` | `stable beta nightly` |
+| `ship release create 1.0 ` | `--channel --notes --config --profile -n` |
+| `ship host add web ` | hostnames (`#2`) |
+| `ship host add --user ` | login names |
+| `ship host add --port=` | `22 2222` |
+| `ship env create dev --region ` | `eu-west-1 eu-central-1 af-south-1` |
+| `ship --config ` | files |
+
+Worth noticing:
+
+- `release create 1.0 <TAB>` still offers flags. There is no `#2` slot for
+  that node, so after the version the node's dash lines are offered.
+- The rollback override is deliberate: it means TAB never suggests `prod` for
+  a rollback. Node-specific replaces global, so list everything you want.
+- `[env create --from]` and `[release rollback --to]` are empty. The values
+  (environment names, versions) are dynamic, and the spec says so honestly.
+
+### `box`: the shape of `docker run`
+
+```text
+box [-H HOST] run [flags] IMAGE [COMMAND [ARG...]] | ps | rm | images
+```
+
+This is docker's shape: flags, then an image, then a command line that
+belongs to the container, flags and all. It shows `@endopts`, clusters that
+end in a value flag (`-itp 8080:80`), image names with colons, and a global
+flag whose value contains `:` and `//`.
+
+```text
+# box: completion spec for examples/box/bin/box.
+#
+#   box [-H HOST] run [flags] IMAGE [COMMAND [ARG...]]
+#   box [-H HOST] ps | rm | images
+#
+# This is the shape of `docker run`: flags, then an image, then a command
+# line that belongs to the container and may contain flags of its own.
+#
+# What this one shows: @endopts, clusters like -itp 8080:80, image names
+# with colons, and a global flag whose value contains : and //.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+run
+ps
+rm
+images
+--help
+
+# --- global: merged into every node ----------------------------------
+[*]
+--host
+-H
+
+# --host and -H take a value (the daemon address, e.g. tcp://h:2375).
+# Free text, so empty: the header only declares that a value follows.
+[* --host]
+[* -H]
+
+# --- box run -------------------------------------------------------------
+[run]
+# @endopts: flags end at the first positional, which is the image. From
+# there on every word belongs to the container, dashes included, so
+# `box run ubuntu:24.04 sh -c ...` is not read as box flags.
+@endopts
+--name
+--restart
+--network
+--pull
+-d
+-i
+-t
+-p
+-e
+-v
+
+# --name takes free text.
+[run --name]
+
+[run --restart]
+no
+always
+on-failure
+unless-stopped
+
+[run --network]
+bridge
+host
+none
+
+[run --pull]
+always
+missing
+never
+
+# -p PORTS and -e NAME=VALUE take free text. Declaring them is what makes
+# clusters work: in `-itp 8080:80`, -i and -t are bare flags and -p is
+# last, so it takes the next word, 8080:80, as its value.
+[run -p]
+[run -e]
+
+# A bind mount starts with a host directory.
+[run -v]
+@dir
+
+# #1 is the image. The colons are why words are rejoined: typed as
+# `ubuntu:2`, bash would see three words.
+[run #1]
+alpine:3.20
+busybox:latest
+ubuntu:22.04
+ubuntu:24.04
+
+# #2 is the command to run in the container.
+[run #2]
+sh
+bash
+env
+
+# #* is every word after that: the command's arguments. Empty, so bash
+# offers files.
+[run #*]
+
+# --- the other commands -------------------------------------------------
+# `box rm` has no @endopts, so flags are still offered after positionals.
+[ps]
+-a
+-q
+--format
+
+[ps --format]
+table
+json
+
+[rm]
+-f
+-v
+
+# `box rm CONTAINER...`
+[rm #*]
+
+[images]
+-a
+--format
+
+[images --format]
+table
+json
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `box ` | `run ps rm images --help --host -H` |
+| `box run -` | `--name --restart --network --pull -d -i -t -p -e -v --host -H` |
+| `box run --restart=` | `no always on-failure unless-stopped` |
+| `box run -itp 8080:80 ` | `alpine:3.20 busybox:latest ubuntu:22.04 ubuntu:24.04` |
+| `box run -itp 8080:80 ubuntu:` | `22.04 24.04` |
+| `box run -it -v ` | directories |
+| `box run ubuntu:24.04 ` | `sh bash env` |
+| `box run ubuntu:24.04 sh -` | nothing: `-` belongs to the container |
+| `box run ubuntu:24.04 sh ` | files |
+| `box -H tcp://h:2375 run --pull ` | `always missing never` |
+| `box ps --format=` | `table json` |
+| `box rm a b -` | `-f -v --host -H` |
+
+Worth noticing:
+
+- `-itp 8080:80 ` is read as `-i`, `-t`, then `-p` waiting for its value,
+  `8080:80`. The cursor is then on `#1`, the image.
+- `rm` has no `@endopts`, so `box rm a b -` still offers flags.
+- Real docker completes container and image names dynamically. A spec cannot.
+  Docker also ships its own completion, which would win; this tool exists to
+  show the shape.
+
+### `backup`: slots that mean different things
+
+```text
+backup run [--exclude P]... [--compress M] [--as USER] SOURCE-DIR HOST
+backup restore [--at WHEN] [--as USER] HOST [DEST-DIR]
+backup verify [--deep] HOST
+```
+
+`SOURCE-DIR HOST` and `HOST DEST-DIR` swap meanings by command. It shows
+`@dir`, `@host` and `@user` side by side, and what happens past the last
+slot.
+
+```text
+# backup: completion spec for examples/backup/bin/backup.
+#
+#   backup run [--exclude P]... [--compress M] [--as USER] SOURCE-DIR HOST
+#   backup restore [--at WHEN] [--as USER] HOST [DEST-DIR]
+#   backup verify [--deep] HOST
+#   backup hosts
+#
+# What this one shows: positional slots that mean different things at
+# different nodes (a directory, then a host; a host, then a directory),
+# and the @dir, @host and @user kinds side by side.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+run
+restore
+verify
+hosts
+--help
+
+# --- global: merged into every node ----------------------------------
+[*]
+-v
+-n
+
+# --- backup run ----------------------------------------------------------
+[run]
+--exclude
+--compress
+--as
+
+# --exclude takes a pattern: free text, so empty. The header must still
+# exist, or the pattern would be counted as SOURCE-DIR.
+[run --exclude]
+
+[run --compress]
+none
+gzip
+zstd
+
+# @user offers login names.
+[run --as]
+@user
+
+# The slots count from 1, in the order the words are typed:
+# `backup run SOURCE-DIR HOST`
+[run #1]
+@dir
+
+[run #2]
+@host
+
+# --- backup restore ------------------------------------------------------
+[restore]
+--at
+--as
+
+[restore --at]
+latest
+yesterday
+last-week
+
+[restore --as]
+@user
+
+# `backup restore HOST [DEST-DIR]`: the opposite order to `run`. The slot
+# numbers are per node, so the same #1 can mean something else here.
+[restore #1]
+@host
+
+[restore #2]
+@dir
+
+# --- backup verify -------------------------------------------------------
+[verify]
+--deep
+
+[verify #1]
+@host
+
+# Not expressible: `backup run SOURCE... HOST` (several sources, then a last
+# one that is the host). A slot cannot know it is the last, so backup takes
+# one source directory.
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `backup ` | `run restore verify hosts --help -v -n` |
+| `backup run ` | directories (`#1`) |
+| `backup run sub ` | hostnames (`#2`) |
+| `backup run sub alpha.example ` | `--exclude --compress --as -v -n` |
+| `backup run --compress=` | `none gzip zstd` |
+| `backup run --as ` | login names |
+| `backup restore ` | hostnames |
+| `backup restore alpha.example ` | directories |
+| `backup restore --at=` | `latest yesterday last-week` |
+| `backup verify ` | hostnames |
+
+Worth noticing:
+
+- `[run --exclude]` is empty but present. `--exclude` takes a pattern, so
+  the pattern must not be counted as a positional.
+- "`SOURCE... DEST`" (several sources and a last destination) cannot be
+  written: a slot cannot know it is the last. `backup` takes one source.
+
+### `mig`: clusters, an alias, a variadic slot
+
+```text
+mig [--env E] [--dir D] [-vn] new|up|migrate|down|apply|status ...
+```
+
+Shows counted bare-flag clusters (`-vvn`), value flags with fixed options,
+`migrate` as an alias of `up`, and a variadic `@file` slot.
+
+```text
+# mig: completion spec for examples/mig/bin/mig.
+#
+#   mig [--env E] [--dir D] [-v] [-n] COMMAND ...
+#     new NAME [--kind sql|py]
+#     up | migrate [--steps N] [--to VERSION]
+#     down [--steps N] [--force]
+#     apply FILE...
+#     status [--format table|json]
+#
+# What this one shows: bare-flag clusters like -vn, value flags with fixed
+# options, an alias (migrate = up), and a variadic file slot.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+new
+up
+migrate
+down
+apply
+status
+--help
+
+# --- global: merged into every node ----------------------------------
+# -v and -n are bare switches: they take no value, so they need no header
+# of their own. -vn is read as the two of them, and nothing is pending.
+[*]
+--env
+--dir
+-v
+-n
+
+[* --env]
+dev
+staging
+prod
+
+[* --dir]
+@dir
+
+# --- mig new ---------------------------------------------------------------
+[new]
+--kind
+
+[new --kind]
+sql
+py
+
+# `mig new NAME`: free text.
+[new #1]
+
+# --- mig up, and its alias migrate ---------------------------------------
+# The format has no aliases, so `migrate` is `up` written out a second time.
+# Keep the two sections together so they stay equal.
+[up]
+--steps
+--to
+
+[up --steps]
+1
+2
+5
+
+# Versions are dynamic: declared, nothing to offer.
+[up --to]
+
+[migrate]
+--steps
+--to
+
+[migrate --steps]
+1
+2
+5
+
+[migrate --to]
+
+# --- mig down ----------------------------------------------------------------
+[down]
+--steps
+--force
+
+[down --steps]
+1
+2
+5
+
+# --- mig apply -------------------------------------------------------------
+# #* is every positional with no #N of its own: any number of files.
+[apply #*]
+@file
+
+# --- mig status ------------------------------------------------------------
+[status]
+--format
+
+[status --format]
+table
+json
+```
+
+| you type | TAB gives |
+| --- | --- |
+| `mig ` | `new up migrate down apply status --help --env --dir -v -n` |
+| `mig --env=` | `dev staging prod` |
+| `mig -vn ` | the same list: `-v` and `-n` are bare flags and change nothing |
+| `mig up --steps ` | `1 2 5` |
+| `mig migrate --steps ` | `1 2 5` |
+| `mig up --to ` | files (declared, nothing fixed to offer) |
+| `mig apply ` | files |
+| `mig apply alpha.txt ` | files (`#*` repeats) |
+| `mig down -vn --steps 2 ` | `--steps --force --env --dir -v -n` |
+| `mig new --kind=` | `sql py` |
+
+Worth noticing:
+
+- There are no aliases in the format. `[migrate]` repeats `[up]` line for
+  line. Keep the two sections side by side so they stay equal.
+- `mig down -vn --steps 2 ` is back at the node: the cluster was two bare
+  flags, and `2` went to `--steps`.
+
+## Cheat sheet
+
+```text
+# comment                  a whole line starting with #; ignored, as are
+                           blank lines (no trailing comments)
+word                       candidate at the root (before any header)
+[*]                        candidates offered at every node
+[* --flag]  [* -f]         global values for a flag
+[path]                     node: its names and flags
+[path --flag]  [path -f]   values for a flag (declares it takes one)
+[path #N]                  Nth positional at that node
+[path #*]                  every positional without a #N of its own
+
+@file  @dir  @user  @host  candidate kinds, fixed
+@endopts                   in [path]: flags end at the first positional
+```
+
+- A flag that takes a value needs a header, even an empty one.
+- A name is any word not starting with `-`, and not `*` or `#...`.
+- Single dash is one character: `-vt` is `-v` and `-t`.
+- Node-specific values replace global ones; they do not merge.
+- No lines, or no match: bash completes filenames.
+- Nothing is ever executed: lines are compared as text.
+- Comments are whole lines starting with `#`. A candidate cannot start with `#`.
+
+Next: [SPEC.md](../SPEC.md) for the precise rules, and the
+[diagrams](spec-diagrams.html).

@@ -1,0 +1,133 @@
+# ship: completion spec for examples/ship/bin/ship.
+#
+#   ship [--profile P] [--config FILE] [-n] COMMAND ...
+#     env      list | show NAME | create NAME [--region R] [--from ENV]
+#     release  create VERSION | promote VERSION | rollback
+#     host     add NAME ADDRESS | rm NAME
+#
+# What this one shows: three levels of subcommand, global flags with values,
+# enumerated values, and a node overriding a global value set.
+#
+# A comment is a whole line starting with #. Blank lines are ignored.
+
+# --- root -------------------------------------------------------------
+# Lines before the first [header] are the root: what is offered right
+# after `ship`.
+env
+release
+host
+--help
+
+# --- global: merged into every node ----------------------------------
+[*]
+--config
+--profile
+-n
+
+# Values for --config, at every node: files.
+[* --config]
+@file
+
+# Values for --profile, at every node.
+[* --profile]
+dev
+staging
+prod
+
+# A node's own section for a flag REPLACES the global one; the two are
+# never merged. So `ship release rollback --profile=` offers only these two
+# and TAB never suggests prod for a rollback.
+[release rollback --profile]
+dev
+staging
+
+# --- ship env ----------------------------------------------------------
+[env]
+list
+show
+create
+
+# `ship env show NAME`: names are dynamic, so the slot is empty (free text).
+[env show #1]
+
+[env create]
+--region
+--from
+
+[env create --region]
+eu-west-1
+eu-central-1
+af-south-1
+
+# --from takes an environment name. Those change, so there is nothing fixed
+# to offer. The empty header still declares that --from takes a value;
+# without it, the value would be counted as a positional.
+[env create --from]
+
+# `ship env create NAME`
+[env create #1]
+
+# --- ship release ---------------------------------------------------------
+[release]
+create
+promote
+rollback
+
+[release create]
+--channel
+--notes
+
+[release create --channel]
+stable
+beta
+nightly
+
+[release create --notes]
+@file
+
+# `ship release create VERSION`. There is no #2, so after the version the
+# node's flags are offered again (try `ship release create 1.0 <TAB>`).
+[release create #1]
+
+[release promote]
+--to
+
+[release promote --to]
+dev
+staging
+prod
+
+# `ship release promote VERSION`
+[release promote #1]
+
+[release rollback]
+--to
+
+# Versions are dynamic: declared, nothing to offer.
+[release rollback --to]
+
+# --- ship host --------------------------------------------------------------
+[host]
+add
+rm
+
+[host add]
+--user
+--port
+
+# @user offers login names.
+[host add --user]
+@user
+
+[host add --port]
+22
+2222
+
+# `ship host add NAME ADDRESS`: NAME is #1 (free text), ADDRESS is #2.
+[host add #1]
+
+[host add #2]
+@host
+
+# `ship host rm NAME`
+[host rm #1]
