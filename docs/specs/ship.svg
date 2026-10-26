@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 840 716" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-ship-title spec-ship-desc">
+<title id="spec-ship-title">ship: the shape of its completion spec</title>
+<desc id="spec-ship-desc">Node tree of the ship completion spec: each box is a [path] section with its flags and positional slots.</desc>
+<defs>
+<style>@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap');</style>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<path d="M240 381 H280" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M280 66 V560" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M280 381 V66 A8 8 0 0 1 288 58 H320" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M280 381 V390 A8 8 0 0 0 288 398 H320" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M280 381 V202 A8 8 0 0 1 288 194 H320" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M280 381 V560 A8 8 0 0 0 288 568 H320" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M520 398 H560" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 338 V458" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 398 V458 A8 8 0 0 0 568 466 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 398 V338 A8 8 0 0 1 568 330 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 398 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M520 194 H560" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 134 V254" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 194 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 194 V254 A8 8 0 0 0 568 262 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 194 V134 A8 8 0 0 1 568 126 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M520 568 H560" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 542 V594" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 568 V542 A8 8 0 0 1 568 534 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<path d="M560 568 V594 A8 8 0 0 0 568 602 H600" fill="none" stroke="#616161" stroke-width="1"/>
+<rect x="40" y="355" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="40" y="355" width="200" height="52" rx="6" fill="#da6a07" fill-opacity="0.08" stroke="#da6a07" stroke-width="1"/>
+<text x="140.0" y="379.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">ship</text>
+<text x="140.0" y="395.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--help</text>
+<rect x="320" y="372" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="320" y="372" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="420.0" y="402.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[release]</text>
+<rect x="600" y="440" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="440" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="464.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[release rollback]</text>
+<text x="700.0" y="480.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--to</text>
+<rect x="320" y="168" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="320" y="168" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="420.0" y="198.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[env]</text>
+<rect x="600" y="168" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="168" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="192.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[env show]</text>
+<text x="700.0" y="208.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">#1 free</text>
+<rect x="600" y="236" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="236" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="254.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[env create]</text>
+<text x="700.0" y="270.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--region --from</text>
+<text x="700.0" y="282.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">#1 free</text>
+<rect x="600" y="304" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="304" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="322.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[release create]</text>
+<text x="700.0" y="338.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--channel --notes</text>
+<text x="700.0" y="350.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">#1 free</text>
+<rect x="600" y="372" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="372" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="390.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[release promote]</text>
+<text x="700.0" y="406.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--to</text>
+<text x="700.0" y="418.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">#1 free</text>
+<rect x="320" y="542" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="320" y="542" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="420.0" y="572.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[host]</text>
+<rect x="600" y="508" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="508" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="526.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[host add]</text>
+<text x="700.0" y="542.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--user --port</text>
+<text x="700.0" y="554.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">#1 free · #2 @host</text>
+<rect x="600" y="576" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="576" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="600.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[host rm]</text>
+<text x="700.0" y="616.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">#1 free</text>
+<rect x="600" y="100" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="600" y="100" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="700.0" y="124.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[env list]</text>
+<text x="700.0" y="140.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">no section: nothing to offer</text>
+<rect x="320" y="32" width="200" height="52" rx="6" fill="#f4f4f4"/>
+<rect x="320" y="32" width="200" height="52" rx="6" fill="#2d2d3b" fill-opacity="0.02" stroke="#2d2d3b" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="420.0" y="50.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[*]</text>
+<text x="420.0" y="66.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--config --profile -n</text>
+<text x="420.0" y="78.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">merged into every node</text>
+<line x1="32" y1="656" x2="808" y2="656" stroke="#2d2d3b" stroke-opacity="0.12" stroke-width="0.8"/>
+<text x="32" y="676" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="120" y="670" width="16" height="12" rx="3" fill="#da6a07" fill-opacity="0.08" stroke="#da6a07" stroke-width="1"/>
+<text x="144" y="680" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the command</text>
+<rect x="320" y="670" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="344" y="680" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">node with children</text>
+<rect x="500" y="670" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
+<text x="524" y="680" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">leaf</text>
+<rect x="580" y="670" width="16" height="12" rx="3" fill="#2d2d3b" fill-opacity="0.02" stroke="#2d2d3b" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="604" y="680" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">[*] global, merged into every node</text>
+</svg>

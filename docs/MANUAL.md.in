@@ -65,7 +65,7 @@ When you press TAB after a command, dircomp does three things.
          [remote add #2]   "the second positional" (the next one)
 ```
 
-Drawn as SVG: [spec-howitworks.svg](spec-howitworks.svg).
+![What happens on one TAB: find the spec, walk the typed words, pick one section](spec-howitworks.svg)
 
 A spec is a list of **sections**. A section is a header in square brackets and
 the lines under it. Each line is one candidate, offered exactly as written.
@@ -93,7 +93,8 @@ are commented the way you should comment yours: a header block saying what
 the command looks like, and a line above each section saying why it is there.
 
 The walk and the cursor rules, drawn out:
-[docs/spec-diagrams.html](spec-diagrams.html).
+[spec-diagrams.html](spec-diagrams.html). Every spec in this manual as a
+picture: [spec-visuals.html](spec-visuals.html).
 
 > When a section has nothing to offer, or does not exist, bash falls back to
 > its own completion, which is filenames. This is why "files" shows up so
@@ -260,7 +261,7 @@ notes remote add web <TAB>
       └──────────── descends into [remote]
 ```
 
-Drawn as SVG: [spec-slots.svg](spec-slots.svg).
+![Counting positionals in notes remote add web TAB](spec-slots.svg)
 
 | you type | TAB gives |
 | --- | --- |
@@ -355,7 +356,9 @@ dircomp offers just `alpha beta`. Write the spec lines in full.
 ```
 
 That is {{lines:examples/notes/.completions/notes}} for a nine-command tool with nesting, global flags, a
-wrapper command and colon values.
+wrapper command and colon values. As a picture, each box a section:
+
+![The notes spec as a tree: root, global node, nine commands, three remote subcommands](specs/notes.svg)
 
 ## When TAB does something odd
 
@@ -398,6 +401,8 @@ value set.
 {{file:examples/ship/.completions/ship}}
 ```
 
+![The ship spec as a tree of nodes](specs/ship.svg)
+
 | you type | TAB gives |
 | --- | --- |
 | `ship ` | `env release host --help --config --profile -n` |
@@ -435,6 +440,8 @@ flag whose value contains `:` and `//`.
 ```text
 {{file:examples/box/.completions/box}}
 ```
+
+![The box spec as a tree of nodes](specs/box.svg)
 
 | you type | TAB gives |
 | --- | --- |
@@ -476,6 +483,8 @@ slot.
 {{file:examples/backup/.completions/backup}}
 ```
 
+![The backup spec as a tree of nodes](specs/backup.svg)
+
 | you type | TAB gives |
 | --- | --- |
 | `backup ` | `run restore verify hosts --help -v -n` |
@@ -508,6 +517,8 @@ Shows counted bare-flag clusters (`-vvn`), value flags with fixed options,
 ```text
 {{file:examples/mig/.completions/mig}}
 ```
+
+![The mig spec as a tree of nodes](specs/mig.svg)
 
 | you type | TAB gives |
 | --- | --- |

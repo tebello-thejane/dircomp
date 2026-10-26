@@ -67,7 +67,7 @@ When you press TAB after a command, dircomp does three things.
          [remote add #2]   "the second positional" (the next one)
 ```
 
-Drawn as SVG: [spec-howitworks.svg](spec-howitworks.svg).
+![What happens on one TAB: find the spec, walk the typed words, pick one section](spec-howitworks.svg)
 
 A spec is a list of **sections**. A section is a header in square brackets and
 the lines under it. Each line is one candidate, offered exactly as written.
@@ -95,7 +95,8 @@ are commented the way you should comment yours: a header block saying what
 the command looks like, and a line above each section saying why it is there.
 
 The walk and the cursor rules, drawn out:
-[docs/spec-diagrams.html](spec-diagrams.html).
+[spec-diagrams.html](spec-diagrams.html). Every spec in this manual as a
+picture: [spec-visuals.html](spec-visuals.html).
 
 > When a section has nothing to offer, or does not exist, bash falls back to
 > its own completion, which is filenames. This is why "files" shows up so
@@ -393,7 +394,7 @@ notes remote add web <TAB>
       └──────────── descends into [remote]
 ```
 
-Drawn as SVG: [spec-slots.svg](spec-slots.svg).
+![Counting positionals in notes remote add web TAB](spec-slots.svg)
 
 | you type | TAB gives |
 | --- | --- |
@@ -718,7 +719,9 @@ less
 ```
 
 That is 144 lines (74 of spec, 45 of comments) for a nine-command tool with nesting, global flags, a
-wrapper command and colon values.
+wrapper command and colon values. As a picture, each box a section:
+
+![The notes spec as a tree: root, global node, nine commands, three remote subcommands](specs/notes.svg)
 
 ## When TAB does something odd
 
@@ -893,6 +896,8 @@ rm
 [host rm #1]
 ```
 
+![The ship spec as a tree of nodes](specs/ship.svg)
+
 | you type | TAB gives |
 | --- | --- |
 | `ship ` | `env release host --help --config --profile -n` |
@@ -1049,6 +1054,8 @@ table
 json
 ```
 
+![The box spec as a tree of nodes](specs/box.svg)
+
 | you type | TAB gives |
 | --- | --- |
 | `box ` | `run ps rm images --help --host -H` |
@@ -1170,6 +1177,8 @@ last-week
 # one that is the host). A slot cannot know it is the last, so backup takes
 # one source directory.
 ```
+
+![The backup spec as a tree of nodes](specs/backup.svg)
 
 | you type | TAB gives |
 | --- | --- |
@@ -1301,6 +1310,8 @@ py
 table
 json
 ```
+
+![The mig spec as a tree of nodes](specs/mig.svg)
 
 | you type | TAB gives |
 | --- | --- |

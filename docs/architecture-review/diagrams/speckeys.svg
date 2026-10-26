@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="speckeys-title speckeys-desc">
+<title id="speckeys-title">Spec model: key strings built at seven call sites, then kept inside one module</title>
+<desc id="speckeys-desc">Before and after: the parser, lookups, offer and walk each build or read the spec's key strings through four shared variables, then a single Spec module answers queries and keeps keys private.</desc>
+<defs>
+<marker id="speckeys-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="speckeys-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<line x1="500" y1="16" x2="500" y2="280" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="16" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">BEFORE</text>
+<text x="536" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">AFTER</text>
+<path d="M 128,160 L 160,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 288,144 L 292,144 Q 300,144 300,136 L 300,80 Q 300,72 308,72 L 312,72" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 288,160 L 312,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 288,176 L 292,176 Q 300,176 300,184 L 300,240 Q 300,248 308,248 L 312,248" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 648,160 L 712,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<rect x="656" y="140" width="48" height="12" rx="2" fill="#f4f4f4"/>
+<text x="680" y="149" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">QUERIES</text>
+<rect x="16" y="136" width="112" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="136" width="112" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="72" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp_parse</text>
+<text x="72" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">builds keys · :161</text>
+
+<rect x="160" y="128" width="128" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="160" y="128" width="128" height="64" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="224" y="152" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">4 shared vars</text>
+<text x="224" y="168" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_DC_LINES _DC_DECL</text>
+<text x="224" y="180" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_DC_NODES _DC_ENDS</text>
+<rect x="312" y="48" width="152" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="312" y="48" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="388" y="68" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp_takes_value</text>
+<text x="388" y="84" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">builds key · :194</text>
+
+<rect x="312" y="136" width="152" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="312" y="136" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="388" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp_offer</text>
+<text x="388" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">reads $typed · :250-255</text>
+
+<rect x="312" y="224" width="152" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="312" y="224" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="388" y="244" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp</text>
+<text x="388" y="260" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">builds keys · 5 lines</text>
+
+<rect x="536" y="136" width="112" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="136" width="112" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="592" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp</text>
+<text x="592" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">walk · classify</text>
+
+<rect x="712" y="64" width="272" height="192" rx="6" fill="#f4f4f4"/>
+<rect x="712" y="64" width="272" height="192" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="848" y="92" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Spec</text>
+<text x="848" y="108" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">answers queries · keys stay private</text>
+<rect x="728" y="120" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="784" y="138" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_dircomp_parse</text>
+<rect x="856" y="120" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="912" y="138" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">key grammar</text>
+<rect x="728" y="160" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="784" y="178" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_dircomp_has</text>
+<rect x="856" y="160" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="912" y="178" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_dircomp_offer</text>
+<text x="848" y="232" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">4 shared vars become internal</text>
+<line x1="16" y1="288" x2="984" y2="288" stroke="rgba(45,45,59,0.10)" stroke-width="0.8"/>
+<text x="16" y="308" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="96" y="300" width="20" height="12" rx="2" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="124" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">FOCAL</text>
+<rect x="180" y="300" width="20" height="12" rx="2" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="208" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">MODULE</text>
+<rect x="268" y="300" width="20" height="12" rx="2" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-width="1.0" stroke-dasharray="4,3"/>
+<text x="296" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">INTERNAL</text>
+</svg>

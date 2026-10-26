@@ -1,0 +1,19 @@
+# Render the repository's Markdown into one PDF with quire.py:
+#
+#     quire.py docs/quire.toml        # writes docs/pdf/dircomp.pdf
+#
+# Parts are relative to `base`, here the repository root. Images in each file
+# (the SVG diagrams under docs/) resolve against that file.
+output = "pdf/dircomp.pdf"
+base = ".."
+title = "dircomp"
+subtitle = "manual and specification"
+short-title = "dircomp"
+toc = true
+toc-depth = 1
+section-links = false
+parts = [
+  "README.md",
+  "docs/MANUAL.md",
+  "SPEC.md",
+]

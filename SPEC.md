@@ -35,10 +35,13 @@ root ── names: run rm ps        flags: --help
      └─ #*       containers
 ```
 
-SVG versions of this tree and of the two flowcharts below are in `docs/`:
+![The dock spec's node tree: root, global node, run, rm](docs/spec-tree.svg)
+
+Every figure here has an SVG made with the diagram-design skill:
 [spec-tree.svg](docs/spec-tree.svg), [spec-walk.svg](docs/spec-walk.svg),
-[spec-classify.svg](docs/spec-classify.svg), and all on one page,
-[docs/spec-diagrams.html](docs/spec-diagrams.html).
+[spec-classify.svg](docs/spec-classify.svg), all on one page,
+[docs/spec-diagrams.html](docs/spec-diagrams.html). Each example spec below
+has a tree too, collected on [docs/spec-visuals.html](docs/spec-visuals.html).
 
 ## Grammar
 
@@ -207,7 +210,7 @@ flowchart TD
   N -->|no| POS
 ```
 
-SVG: [docs/spec-walk.svg](docs/spec-walk.svg).
+![Walking one typed word: pending flag, @endopts, long or short flag, descent, or positional](docs/spec-walk.svg)
 
 A pending flag takes the next word whatever it looks like, then clears. A
 lone `-` is a bare word; a lone `--` is a bare flag.
@@ -241,7 +244,7 @@ flowchart TD
   S -->|no| NODE["node: P plus *, dash lines only if k >= 1"]
 ```
 
-SVG: [docs/spec-classify.svg](docs/spec-classify.svg).
+![Classifying the word under the cursor: value, slot, or node](docs/spec-classify.svg)
 
 ## Examples
 
@@ -297,6 +300,8 @@ rm
 origin
 upstream
 ```
+
+![The tally spec as a tree of nodes](docs/specs/tally.svg)
 
 | typed | offered |
 | --- | --- |
@@ -356,6 +361,8 @@ unless-stopped
 
 [rm #*]
 ```
+
+![The dock spec as a tree of nodes](docs/specs/dock.svg)
 
 | typed | offered |
 | --- | --- |

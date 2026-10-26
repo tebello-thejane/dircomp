@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture review for dircomp</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--paper:#f4f4f4;--ink:#2d2d3b;--muted:#616161;--soft:#878787;--rule:rgba(45,45,59,.12);--accent:#da6a07}
+body{background:var(--paper);color:var(--ink);font-family:'Roboto',system-ui,sans-serif}
+h1,h2,h3{font-family:'Roboto',system-ui,sans-serif;letter-spacing:-.01em}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.eyebrow{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.66rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+article{border:1px solid var(--rule);border-radius:8px;padding:1.5rem;background:var(--paper)}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;border:1px solid}
+.b-strong{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.b-worth{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.b-spec{background:#e2e8f0;color:#334155;border-color:#cbd5e1}
+.b-tag{background:transparent;color:var(--muted);border-color:var(--rule)}
+.files li{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--muted)}
+.fig svg{width:100%;height:auto;display:block;min-width:720px}
+.fig{overflow-x:auto}
+.warn{border:1px solid #fcd34d;background:#fffbeb;border-radius:6px;padding:.6rem .8rem;font-size:.88rem;color:#78350f}
+.k{font-weight:500}
+ul.wins{list-style:none;padding:0}
+ul.wins li::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:.6rem}
+</style>
+</head>
+<body>
+<main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+  <header class="space-y-3">
+    <p class="eyebrow">Architecture review · 24 October 2026</p>
+    <h1 class="text-4xl font-bold">dircomp</h1>
+    <p class="text-sm" style="color:var(--muted)">Hot spots: <span class="mono">lib/dircomp.bash</span> in 7 of 10 commits, <span class="mono">install.sh</span> in 6.
+      No <span class="mono">GLOSSARY.md</span> or ADRs exist; SPEC.md vocabulary used. Uncommitted <span class="mono">test/tab.py</span> and <span class="mono">examples/</span> read, not touched.</p>
+  </header>
+  <section id="candidates" class="space-y-10">
+    
+<article id="c1" class="space-y-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="eyebrow">Candidate 1</span>
+    <span class="badge b-strong">Strong</span>
+    <span class="badge b-tag">local-substitutable</span>
+  </div>
+  <h2 class="text-2xl font-bold leading-tight">Deepen the managed ~/.bashrc block</h2>
+  <ul class="files space-y-0.5"><li>{dircomp-root}/install.sh:26-58, 102-108</li><li>{dircomp-root}/uninstall.sh:6-31</li><li>{dircomp-root}/test/installer.sh</li></ul>
+  <div class="fig"><svg viewBox="0 0 1000 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="block-title block-desc">
+<title id="block-title">Managed bashrc block: duplicated in two scripts, then owned by one module</title>
+<desc id="block-desc">Before and after: install.sh and uninstall.sh each carry their own copy of the bashrc marker logic, then both call one module that owns the block.</desc>
+<defs>
+<marker id="block-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="block-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<line x1="500" y1="16" x2="500" y2="280" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="16" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">BEFORE</text>
+<text x="536" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">AFTER</text>
+<path d="M 144,88 L 192,88" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<path d="M 144,232 L 192,232" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<path d="M 320,88 L 336,88 Q 344,88 344,96 L 344,140 Q 344,148 352,148 L 368,148" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<path d="M 320,232 L 336,232 Q 344,232 344,224 L 344,180 Q 344,172 352,172 L 368,172" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<path d="M 256,112 L 256,208" fill="none" stroke="#da6a07" stroke-width="1" stroke-dasharray="4,3"/>
+<path d="M 664,88 L 712,88" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<path d="M 664,232 L 712,232" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<path d="M 872,160 L 904,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#block-arrow)"/>
+<rect x="264" y="154" width="64" height="12" rx="2" fill="#f4f4f4"/>
+<text x="296" y="163" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SAME LOGIC</text>
+<rect x="16" y="64" width="128" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="64" width="128" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="80" y="84" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">install.sh</text>
+<text x="80" y="100" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">curl | bash · 5 tests</text>
+
+<rect x="16" y="208" width="128" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="208" width="128" height="48" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="80" y="228" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">uninstall.sh</text>
+<text x="80" y="244" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">curl | bash · 0 tests</text>
+
+<rect x="192" y="64" width="128" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="192" y="64" width="128" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="256" y="84" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Block logic</text>
+<text x="256" y="100" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">markers · awk</text>
+
+<rect x="192" y="208" width="128" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="192" y="208" width="128" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="256" y="228" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Block logic</text>
+<text x="256" y="244" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">markers · awk</text>
+
+<rect x="368" y="136" width="96" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="368" y="136" width="96" height="48" rx="6" fill="rgba(45,45,59,0.05)" stroke="#616161" stroke-width="1.0"/>
+<text x="416" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">~/.bashrc</text>
+<text x="416" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">user file</text>
+
+<rect x="536" y="64" width="128" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="64" width="128" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="600" y="84" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">install.sh</text>
+<text x="600" y="100" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">entry point</text>
+
+<rect x="536" y="208" width="128" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="208" width="128" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="600" y="228" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">uninstall.sh</text>
+<text x="600" y="244" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">entry point</text>
+
+<rect x="712" y="64" width="160" height="192" rx="6" fill="#f4f4f4"/>
+<rect x="712" y="64" width="160" height="192" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="792" y="92" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Managed block</text>
+<text x="792" y="112" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">inspect · write · remove</text>
+<rect x="728" y="136" width="128" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="792" y="154" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">marker state</text>
+<rect x="728" y="172" width="128" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="792" y="190" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">awk rewrite</text>
+<text x="792" y="232" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">tests cross here</text>
+<rect x="904" y="136" width="80" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="904" y="136" width="80" height="48" rx="6" fill="rgba(45,45,59,0.05)" stroke="#616161" stroke-width="1.0"/>
+<text x="944" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">~/.bashrc</text>
+<text x="944" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">user file</text>
+
+<line x1="16" y1="288" x2="984" y2="288" stroke="rgba(45,45,59,0.10)" stroke-width="0.8"/>
+<text x="16" y="308" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="96" y="300" width="20" height="12" rx="2" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="124" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">FOCAL</text>
+<rect x="180" y="300" width="20" height="12" rx="2" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="208" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">MODULE</text>
+<rect x="268" y="300" width="20" height="12" rx="2" fill="rgba(45,45,59,0.05)" stroke="#616161" stroke-width="1.0"/>
+<text x="296" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">STATE</text>
+<line x1="352" y1="304" x2="372" y2="304" stroke="#da6a07" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="380" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">DUPLICATE</text>
+<rect x="455" y="300" width="20" height="12" rx="2" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-width="1.0" stroke-dasharray="4,3"/>
+<text x="483" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">INTERNAL</text>
+</svg></div>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="space-y-3">
+      <p><span class="eyebrow block">Problem</span>Marker constants, whole-line counting, the begin-before-end check and the awk rewrite exist twice. Commits 657a816 and 4a8725f each had to edit both copies. <span class='k'>uninstall.sh</span> has no test: no reference to it in <span class='mono'>test/</span>.</p>
+      <p><span class="eyebrow block">Solution</span>One module owns the block's lifecycle: inspect state, write, remove. Install and uninstall become callers of it.</p>
+    </div>
+    <div><span class="eyebrow block">Benefits</span><ul class="wins mt-1"><li class='py-0.5'>locality: marker bugs fixed once, not twice</li><li class='py-0.5'>leverage: both entry points share one interface</li><li class='py-0.5'>tests cross one interface; uninstall becomes testable</li><li class='py-0.5'>the destructive path (rewriting ~/.bashrc) stops being untested</li></ul></div>
+  </div>
+  <p class="warn mt-4"><b>Constraint, not an ADR:</b> install.sh runs as <span class='mono'>curl | bash</span> and cannot source a sibling file. Where the shared module lives is the first thing to settle.</p>
+</article>
+    
+<article id="c2" class="space-y-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="eyebrow">Candidate 2</span>
+    <span class="badge b-worth">Worth exploring</span>
+    <span class="badge b-tag">in-process</span>
+  </div>
+  <h2 class="text-2xl font-bold leading-tight">Hide the spec model's key grammar</h2>
+  <ul class="files space-y-0.5"><li>{dircomp-root}/lib/dircomp.bash:101-195 (parse, has, takes_value)</li><li>{dircomp-root}/lib/dircomp.bash:228-258 (offer)</li><li>{dircomp-root}/lib/dircomp.bash:311-331 (classify)</li></ul>
+  <div class="fig"><svg viewBox="0 0 1000 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="speckeys-title speckeys-desc">
+<title id="speckeys-title">Spec model: key strings built at seven call sites, then kept inside one module</title>
+<desc id="speckeys-desc">Before and after: the parser, lookups, offer and walk each build or read the spec's key strings through four shared variables, then a single Spec module answers queries and keeps keys private.</desc>
+<defs>
+<marker id="speckeys-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="speckeys-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<line x1="500" y1="16" x2="500" y2="280" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="16" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">BEFORE</text>
+<text x="536" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">AFTER</text>
+<path d="M 128,160 L 160,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 288,144 L 292,144 Q 300,144 300,136 L 300,80 Q 300,72 308,72 L 312,72" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 288,160 L 312,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 288,176 L 292,176 Q 300,176 300,184 L 300,240 Q 300,248 308,248 L 312,248" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<path d="M 648,160 L 712,160" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#speckeys-arrow)"/>
+<rect x="656" y="140" width="48" height="12" rx="2" fill="#f4f4f4"/>
+<text x="680" y="149" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">QUERIES</text>
+<rect x="16" y="136" width="112" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="136" width="112" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="72" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp_parse</text>
+<text x="72" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">builds keys · :161</text>
+
+<rect x="160" y="128" width="128" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="160" y="128" width="128" height="64" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="224" y="152" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">4 shared vars</text>
+<text x="224" y="168" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_DC_LINES _DC_DECL</text>
+<text x="224" y="180" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_DC_NODES _DC_ENDS</text>
+<rect x="312" y="48" width="152" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="312" y="48" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="388" y="68" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp_takes_value</text>
+<text x="388" y="84" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">builds key · :194</text>
+
+<rect x="312" y="136" width="152" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="312" y="136" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="388" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp_offer</text>
+<text x="388" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">reads $typed · :250-255</text>
+
+<rect x="312" y="224" width="152" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="312" y="224" width="152" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="388" y="244" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp</text>
+<text x="388" y="260" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">builds keys · 5 lines</text>
+
+<rect x="536" y="136" width="112" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="136" width="112" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="592" y="156" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp</text>
+<text x="592" y="172" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">walk · classify</text>
+
+<rect x="712" y="64" width="272" height="192" rx="6" fill="#f4f4f4"/>
+<rect x="712" y="64" width="272" height="192" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="848" y="92" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Spec</text>
+<text x="848" y="108" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">answers queries · keys stay private</text>
+<rect x="728" y="120" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="784" y="138" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_dircomp_parse</text>
+<rect x="856" y="120" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="912" y="138" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">key grammar</text>
+<rect x="728" y="160" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="784" y="178" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_dircomp_has</text>
+<rect x="856" y="160" width="112" height="28" rx="4" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-dasharray="4,3" stroke-width="1"/>
+<text x="912" y="178" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">_dircomp_offer</text>
+<text x="848" y="232" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">4 shared vars become internal</text>
+<line x1="16" y1="288" x2="984" y2="288" stroke="rgba(45,45,59,0.10)" stroke-width="0.8"/>
+<text x="16" y="308" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="96" y="300" width="20" height="12" rx="2" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="124" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">FOCAL</text>
+<rect x="180" y="300" width="20" height="12" rx="2" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="208" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">MODULE</text>
+<rect x="268" y="300" width="20" height="12" rx="2" fill="rgba(45,45,59,0.02)" stroke="rgba(45,45,59,0.20)" stroke-width="1.0" stroke-dasharray="4,3"/>
+<text x="296" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">INTERNAL</text>
+</svg></div>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="space-y-3">
+      <p><span class="eyebrow block">Problem</span>The key grammar (<span class='mono'>n</span>, <span class='mono'>f</span>, <span class='mono'>s</span> + path) is hand-built on 7 lines in 3 functions. The model travels as four variables that <span class='mono'>_dircomp</span> declares local (:261-262) and <span class='mono'>_dircomp_parse</span> fills by dynamic scope; <span class='mono'>_dircomp_offer</span> also reads the caller's <span class='mono'>$typed</span> (5 uses, :250-255). The interface is a naming convention.</p>
+      <p><span class="eyebrow block">Solution</span>A Spec module answers queries about nodes, flags and slots. Key strings and the four variables become its implementation.</p>
+    </div>
+    <div><span class="eyebrow block">Benefits</span><ul class="wins mt-1"><li class='py-0.5'>locality: grammar changes touch one module</li><li class='py-0.5'>interface shrinks; implementation absorbs key building</li><li class='py-0.5'>the walk reads like SPEC.md, not like string surgery</li><li class='py-0.5'>hidden coupling through $typed disappears</li></ul></div>
+  </div>
+  <p class="warn mt-4"><b>Risk:</b> bash has no records. A query interface that forks a subshell per lookup adds latency to every TAB; the interface has to return through variables.</p>
+</article>
+    
+<article id="c3" class="space-y-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="eyebrow">Candidate 3</span>
+    <span class="badge b-worth">Worth exploring</span>
+    <span class="badge b-tag">ports &amp; adapters</span>
+  </div>
+  <h2 class="text-2xl font-bold leading-tight">Give the walk and classify rules their own seam</h2>
+  <ul class="files space-y-0.5"><li>{dircomp-root}/lib/dircomp.bash:260-348 (_dircomp, 89 lines)</li><li>{dircomp-root}/lib/dircomp.bash:28-62 (host detection)</li><li>{dircomp-root}/test/tab.py</li></ul>
+  <div class="fig"><svg viewBox="0 0 1000 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="walkseam-title walkseam-desc">
+<title id="walkseam-title">Completion walk: reachable only through a real TAB, then given its own seam</title>
+<desc id="walkseam-desc">Before and after: every test of the walk and classify rules runs a pty, bash and bash-completion; afterwards table tests reach a Line reader module directly while the pty suite covers the host adapter.</desc>
+<defs>
+<marker id="walkseam-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
+<marker id="walkseam-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f4f4f4"/>
+<line x1="500" y1="16" x2="500" y2="280" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="16" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">BEFORE</text>
+<text x="536" y="24" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.18em">AFTER</text>
+<text x="256" y="168" fill="#2d2d3b" font-size="12" font-style="italic" font-family="'Roboto', system-ui, sans-serif">Only door in:</text>
+<text x="256" y="184" fill="#2d2d3b" font-size="12" font-style="italic" font-family="'Roboto', system-ui, sans-serif">a real TAB.</text>
+<text x="256" y="204" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">about 1 s per case</text>
+<path d="M 116,104 L 116,144" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#walkseam-arrow)"/>
+<path d="M 116,192 L 116,232" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#walkseam-arrow)"/>
+<path d="M 636,104 L 636,144" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#walkseam-arrow)"/>
+<path d="M 636,192 L 636,232" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#walkseam-arrow)"/>
+<path d="M 792,256 L 736,256" fill="none" stroke="#616161" stroke-width="1.2" marker-end="url(#walkseam-arrow)"/>
+<rect x="126" y="118" width="52" height="12" rx="2" fill="#f4f4f4"/>
+<text x="152" y="127" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">REAL TAB</text>
+<rect x="126" y="206" width="68" height="12" rx="2" fill="#f4f4f4"/>
+<text x="160" y="215" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">COMPLETE -F</text>
+<rect x="646" y="118" width="52" height="12" rx="2" fill="#f4f4f4"/>
+<text x="672" y="127" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">REAL TAB</text>
+<rect x="650" y="206" width="36" height="12" rx="2" fill="#f4f4f4"/>
+<text x="668" y="215" fill="#878787" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">WORDS</text>
+<rect x="16" y="56" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="56" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="116" y="76" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">test/tab.py</text>
+<text x="116" y="92" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">pty · 125 cases · 132 s</text>
+
+<rect x="16" y="144" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="144" width="200" height="48" rx="6" fill="rgba(45,45,59,0.03)" stroke="rgba(45,45,59,0.30)" stroke-width="1.0"/>
+<text x="116" y="164" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">bash + bash-completion</text>
+<text x="116" y="180" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">sourcing lib alone: rc=1</text>
+
+<rect x="16" y="232" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="16" y="232" width="200" height="48" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="116" y="252" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">_dircomp</text>
+<text x="116" y="268" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">parse · walk · classify · emit</text>
+
+<rect x="536" y="56" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="56" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="636" y="76" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">test/tab.py</text>
+<text x="636" y="92" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">pty · integration cases</text>
+
+<rect x="536" y="144" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="144" width="200" height="48" rx="6" fill="rgba(45,45,59,0.03)" stroke="rgba(45,45,59,0.30)" stroke-width="1.0"/>
+<text x="636" y="164" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Host adapter</text>
+<text x="636" y="180" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">loader · stub · word-break</text>
+
+<rect x="536" y="232" width="200" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="536" y="232" width="200" height="48" rx="6" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="636" y="252" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Line reader</text>
+<text x="636" y="268" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">walk · classify</text>
+
+<rect x="792" y="232" width="176" height="48" rx="6" fill="#f4f4f4"/>
+<rect x="792" y="232" width="176" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="880" y="252" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">Table tests</text>
+<text x="880" y="268" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">no pty · in-process</text>
+
+<line x1="16" y1="288" x2="984" y2="288" stroke="rgba(45,45,59,0.10)" stroke-width="0.8"/>
+<text x="16" y="308" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="96" y="300" width="20" height="12" rx="2" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1.2"/>
+<text x="124" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">FOCAL</text>
+<rect x="180" y="300" width="20" height="12" rx="2" fill="#ffffff" stroke="#2d2d3b" stroke-width="1.0"/>
+<text x="208" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">MODULE</text>
+<rect x="268" y="300" width="20" height="12" rx="2" fill="rgba(45,45,59,0.03)" stroke="rgba(45,45,59,0.30)" stroke-width="1.0"/>
+<text x="296" y="309" fill="#616161" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace">HOST</text>
+</svg></div>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="space-y-3">
+      <p><span class="eyebrow block">Problem</span>Walk, classify, emit and word-break trimming share one 89-line function, reachable only through bash-completion and a real TAB. Sourcing the library without bash-completion exits 1. The suite ran 125 cases in 2m12s on 24 October 2026; a failing case does not say which rule failed.</p>
+      <p><span class="eyebrow block">Solution</span>Put the rules behind their own interface (SPEC.md, &ldquo;Reading the line&rdquo;). The host adapter keeps loader detection, the fallback stub and word-break handling.</p>
+    </div>
+    <div><span class="eyebrow block">Benefits</span><ul class="wins mt-1"><li class='py-0.5'>locality: the SPEC.md walk rules live in one module</li><li class='py-0.5'>tests cross the seam without a pty</li><li class='py-0.5'>pty suite narrows to the host adapter</li><li class='py-0.5'>two bash-completion generations: the adapter seam is already real</li></ul></div>
+  </div>
+  <p class="warn mt-4"><b>Do not replace the pty harness (184d65a).</b> It is the only test that exercises the integration, where 76f71c1 fixed bugs. This adds a second test surface. It pays only if the walk rules keep moving: 707fbd3 touched 293 lines of the library.</p>
+</article>
+  </section>
+  <section id="also" class="space-y-2">
+    <h3 class="eyebrow">Considered, no card</h3>
+    <ul class="text-sm space-y-1" style="color:var(--muted)">
+      <li>Release identity in 5 lines across 3 files (README.md:23, 43; install.sh:4, 21; lib/dircomp.bash:25). The tag pin is deliberate for <span class="mono">curl | bash</span>; a release step fixes it, a module does not.</li>
+      <li>Host detection (lib/dircomp.bash:37-62) already carries two real adapters (bash-completion 2.11 and 2.12 names). Leave it.</li>
+      <li><span class="mono">_dircomp_resolve</span> and <span class="mono">_dircomp_find</span> pass the deletion test: deleting them spreads symlink and walk-up logic across callers.</li>
+    </ul>
+  </section>
+  <section id="top-recommendation">
+    <article class="space-y-2" style="border-color:var(--accent)">
+      <p class="eyebrow">Top recommendation</p>
+      <h2 class="text-2xl font-bold"><a href="#c1" class="underline decoration-1 underline-offset-4">Candidate 1: deepen the managed ~/.bashrc block</a></h2>
+      <p>Only duplicated logic with a double-fix history. It rewrites a user's ~/.bashrc, and its uninstall path has no test.</p>
+    </article>
+  </section>
+</main>
+</body>
+</html>
