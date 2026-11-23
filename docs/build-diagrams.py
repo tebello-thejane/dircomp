@@ -222,7 +222,7 @@ def fig_tree():
     body = "\n".join(wires + nodes + [leg])
     return svg(
         "spec-tree",
-        "dircomp spec v3: the node tree",
+        "dircomp spec v4: the node tree",
         "Tree of a docker-shaped command spec: a root node, a global section merged into every node, and run and rm nodes with flag-value and positional-slot leaves.",
         W,
         H,
@@ -236,7 +236,7 @@ def fig_tree():
 
 
 def fig_walk():
-    W, H = 1000, 744
+    W, H = 1000, 760
     DW, DH = 240, 88
     cx = 500
     d1, d2, d3, d4 = 80, 224, 368, 520
@@ -252,7 +252,7 @@ def fig_walk():
         path(f"M{cx + 120} {d3} H700", "spec-walk-arrow"),
         path(f"M{cx + 120} {d4} H700", "spec-walk-arrow"),
         path(
-            f"M{cx + 120} {d2} H940 A8 8 0 0 1 948 {d2 + 8} V638 A8 8 0 0 1 940 646 H600",
+            f"M{cx + 120} {d2} H940 A8 8 0 0 1 948 {d2 + 8} V646 A8 8 0 0 1 940 654 H600",
             "spec-walk-arrow-accent",
             ACCENT,
         ),
@@ -278,12 +278,12 @@ def fig_walk():
         box(700, 56, 200, 48, "step", "word is its value", ["pending clears"], mono_name=False),
         box(120, 328, 200, 80, "step", "long flag  --x", ["--x=v : value attached", "declared flag : pending", "undeclared : bare flag"]),
         box(700, 328, 200, 80, "step", "short flag, cluster", ["scan chars left to right", "declared char takes value:", "attached, or next word"], mono_name=False),
-        box(700, 496, 200, 48, "step", "descend", ["path += word, k = 0"], mono_name=False),
-        box(400, 622, 200, 48, "step", "positional", ["k = k + 1"], mono_name=False),
+        box(700, 488, 200, 64, "step", "descend", ["path += word, k = 0", "then [path]'s @goto, if any"], mono_name=False),
+        box(400, 622, 200, 64, "step", "positional", ["k = k + 1", "then the slot's @goto, if any"], mono_name=False),
     ]
     body.append(
         legend(
-            700,
+            716,
             W,
             [
                 ("decision", "decision", 120),
@@ -294,8 +294,8 @@ def fig_walk():
     )
     return svg(
         "spec-walk",
-        "dircomp spec v3: walking one typed word",
-        "Flowchart of how the reader consumes each word before the cursor: pending flag, endopts, long or short flag, descent into a node, or positional.",
+        "dircomp spec v4: walking one typed word",
+        "Flowchart of how the reader consumes each word before the cursor: pending flag, endopts, long or short flag, descent into a node, or positional; a descent or a positional then follows the section's @goto, if any.",
         W,
         H,
         "\n".join(body),
@@ -341,7 +341,7 @@ def fig_classify():
     ]
     return svg(
         "spec-classify",
-        "dircomp spec v3: classifying the cursor word",
+        "dircomp spec v4: classifying the cursor word",
         "Flowchart of how the word under the cursor is classified as a flag value, a positional slot, or a node's own names and flags.",
         W,
         H,
@@ -452,7 +452,15 @@ def spec_tree(secs: dict):
 
     def touch(path):
         for i in range(len(path) + 1):
-            nodes.setdefault(path[:i], dict(flags=[], slots=[], endopts=False, names=[], section=False))
+            nodes.setdefault(path[:i], dict(flags=[], slots=[], endopts=False, names=[], section=False, goto=None))
+
+    def goto_of(body):
+        # The first @goto line's target, "" for the root, None if there is none.
+        for line in body:
+            toks = line.split()
+            if toks and toks[0] == "@goto":
+                return " ".join(toks[1:])
+        return None
 
     for (path, kind, last), body in secs.items():
         if path and path[0] == "*":
@@ -464,6 +472,8 @@ def spec_tree(secs: dict):
         if kind == "n":
             n["section"] = True
             n["endopts"] = n["endopts"] or "@endopts" in body
+            if path and n["goto"] is None:
+                n["goto"] = goto_of(body)
             for line in body:
                 if line.startswith("-"):
                     n["flags"].append(line)
@@ -471,12 +481,16 @@ def spec_tree(secs: dict):
                     n["names"].append(line)
         elif kind == "s":
             n["section"] = True
-            if not body:
+            target = goto_of(body)
+            cands = [l for l in body if l.split()[0] != "@goto"]
+            if not cands:
                 what = "free"
-            elif body[0].startswith("@"):
-                what = body[0]
+            elif cands[0].startswith("@"):
+                what = cands[0]
             else:
-                what = "|".join(body[:2]) + ("|…" if len(body) > 2 else "")
+                what = "|".join(cands[:2]) + ("|…" if len(cands) > 2 else "")
+            if target is not None:
+                what += f" → [{target}]"
             n["slots"].append(f"{last} {what}")
     for path in list(nodes):
         for name in nodes[path]["names"]:
@@ -566,6 +580,8 @@ def fig_spec(slug: str, cmd: str, text: str) -> str:
             out.append(clip(" · ".join(n["slots"]), 31))
         if n.get("endopts"):
             out.insert(0, "@endopts: flags end at #1")
+        if n.get("goto") is not None:
+            out.insert(0, f"alias: @goto [{n['goto']}]")
         return out[:2]
 
     for path, n in nodes.items():
@@ -615,6 +631,10 @@ def spec_sources() -> dict:
             out["tally"] = block
         elif block.startswith("run\nrm\nps"):
             out["dock"] = block
+        elif block.startswith("ps\ncontainer"):
+            out["dk"] = block
+        elif block.startswith("link\n\n[link]"):
+            out["lnk"] = block
     return out
 
 
@@ -705,7 +725,7 @@ PAGE = """<!DOCTYPE html>
 </head>
 <body>
   <div class="frame">
-    <p class="eyebrow">dircomp &middot; completion spec v3</p>
+    <p class="eyebrow">dircomp &middot; completion spec v4</p>
     <h1>dircomp in five diagrams</h1>
     <p class="lede">What happens on a TAB, the shape a <code>.completions</code> file describes, how the reader counts positional arguments, how it consumes the words before the cursor, and how it classifies the word under it. Guide: <a href="MANUAL.md">MANUAL.md</a>. Rules: <a href="../SPEC.md">SPEC.md</a>.</p>
 
@@ -762,13 +782,15 @@ PAGE = """<!DOCTYPE html>
 
 
 GALLERY_CAPTIONS = {
-    "tally": "The v3 spec from SPEC.md's examples: nesting, a global section, slots.",
+    "tally": "The tally spec from SPEC.md's examples: nesting, a global section, slots.",
     "dock": "SPEC.md's docker-shaped spec: @endopts on run, a variadic rm.",
     "notes": "The tutorial's finished spec (examples/notes/.completions/notes).",
     "ship": "examples/ship: three levels of subcommand, globals, an override.",
     "box": "examples/box: the shape of docker run, with @endopts on run.",
     "backup": "examples/backup: positional slots with different meanings.",
     "mig": "examples/mig: clusters, an alias, a variadic file slot.",
+    "dk": "SPEC.md's alias example: container ls is ps under a second name.",
+    "lnk": "SPEC.md's loop example: each value slot and keyword jumps back to [link set].",
 }
 
 
@@ -780,7 +802,7 @@ def gallery(specs: dict) -> str:
     ) if "{fonts}" in head else head
     secs = []
     for name in specs:
-        src = {"tally": "../SPEC.md", "dock": "../SPEC.md"}.get(name, f"../examples/{name}/.completions/{name}")
+        src = {"tally": "../SPEC.md", "dock": "../SPEC.md", "dk": "../SPEC.md", "lnk": "../SPEC.md"}.get(name, f"../examples/{name}/.completions/{name}")
         secs.append(f"""    <section>
       <p class="eyebrow">Spec &middot; {name}</p>
       <h2>{name}</h2>
@@ -817,7 +839,7 @@ def main():
     (OUT / "spec-diagrams.html").write_text(page)
 
     (OUT / "specs").mkdir(exist_ok=True)
-    order = ["tally", "dock", "notes", "ship", "box", "backup", "mig"]
+    order = ["tally", "dock", "dk", "lnk", "notes", "ship", "box", "backup", "mig"]
     sources = spec_sources()
     drawn = {}
     for name in order:

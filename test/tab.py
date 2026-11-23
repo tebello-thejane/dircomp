@@ -222,6 +222,107 @@ ubuntu:24.04
 alpine:3.20
 """
 
+# v4: an alias. `dk container ls` is `dk ps` under a second name.
+SPEC_DK = """\
+ps
+container
+
+[ps]
+--all
+--format
+-a
+-q
+
+[ps --format]
+json
+table
+
+[container]
+ls
+
+[container ls]
+@goto ps
+"""
+
+# v4: a loop. Each value slot, and each keyword without a value, jumps back
+# to [link set], so keywords come in any order and any number.
+SPEC_LNK = """\
+link
+
+[link]
+set
+
+[link set]
+dev
+mtu
+up
+down
+
+[link set dev #1]
+@goto link set
+
+[link set mtu #1]
+1500
+9000
+@goto link set
+
+[link set up]
+@goto link set
+
+[link set down]
+@goto link set
+"""
+
+# v4 edge cases: @goto at the root and in a value section is ignored, a bad
+# target is ignored, the first @goto wins, a self-alias stays put, an alias
+# cycle stops, and a slot may jump to its own node.
+SPEC_EDGE = """\
+@goto b
+a
+b
+bad
+twice
+spin
+c1
+each
+
+[*]
+--opt
+
+[* --opt]
+x
+@goto a
+
+[a]
+@goto b
+
+[b]
+--bee
+
+[bad]
+@goto nowhere
+--bad
+
+[twice]
+@goto b
+@goto a
+
+[spin]
+@goto spin
+--spin
+
+[c1]
+@goto c2
+
+[c2]
+@goto c1
+--c2
+
+[each #1]
+one
+@goto each
+"""
+
 NATIVE_FOO = """\
 _foo() { COMPREPLY=(native1); }
 complete -F _foo foo
@@ -266,6 +367,9 @@ def build_fixture(root: Path) -> None:
         ("dock", SPEC_DOCK),
         ("var", SPEC_VAR),
         ("img", SPEC_IMG),
+        ("dk", SPEC_DK),
+        ("lnk", SPEC_LNK),
+        ("edge", SPEC_EDGE),
     ):
         script = compl / "bin" / name
         script.write_text("#!/bin/sh\n")
@@ -585,7 +689,7 @@ def build_cases(root: Path) -> list[dict]:
              line="tally ", expect=({"bin", "compl", "examples", "tut", "work"}, "==")),
         dict(name="14 ./bin/tally again after a miss (not sticky)", cwd=compl,
              line="./bin/tally ", expect=(base, "==")),
-    ] + build_v3_cases(work) + build_docs_cases(work)
+    ] + build_v3_cases(work) + build_v4_cases(work) + build_docs_cases(work)
 
 
 def build_v3_cases(work: Path) -> list[dict]:
@@ -663,6 +767,56 @@ def build_v3_cases(work: Path) -> list[dict]:
              line=img + "ubuntu:22", buffer=img + "ubuntu:22.04 "),
         dict(name="v3-25 no colon typed: whole candidates", cwd=work,
              line=img + "ub", buffer=img + "ubuntu:2"),
+    ]
+
+
+def build_v4_cases(work: Path) -> list[dict]:
+    """Format v4: @goto as an alias, as a loop, and its edge cases."""
+    dk = "../compl/bin/dk "
+    lnk = "../compl/bin/lnk "
+    edge = "../compl/bin/edge "
+    files = {"alpha.txt", "beta.txt", "sub"}
+    kw = {"dev", "mtu", "up", "down"}
+    root = {"a", "b", "bad", "twice", "spin", "c1", "each", "--opt"}
+    return [
+        dict(name="v4-1 alias parent lists the alias name", cwd=work,
+             line=dk + "container ", expect=({"ls"}, "==")),
+        dict(name="v4-2 alias: the walk is at [ps]", cwd=work,
+             line=dk + "container ls -", expect=({"--all", "--format", "-a", "-q"}, "==")),
+        dict(name="v4-3 alias: flags are looked up at the target", cwd=work,
+             line=dk + "container ls --format ", expect=({"json", "table"}, "==")),
+        dict(name="v4-4 loop node", cwd=work,
+             line=lnk + "link set ", expect=(kw, "==")),
+        dict(name="v4-5 continuation slot is free text", cwd=work,
+             line=lnk + "link set dev ", expect=(files, "==")),
+        dict(name="v4-6 slot @goto returns to [link set]", cwd=work,
+             # Under v3 this is [link set dev] with k=1: no candidates.
+             line=lnk + "link set dev eth0 ", expect=(kw, "==")),
+        dict(name="v4-7 a second keyword after the jump", cwd=work,
+             line=lnk + "link set dev eth0 mtu ", expect=({"1500", "9000"}, "==")),
+        dict(name="v4-8 keyword alias loops back too", cwd=work,
+             line=lnk + "link set dev eth0 mtu 9000 up ", expect=(kw, "==")),
+        dict(name="v4-9 keywords repeat", cwd=work,
+             line=lnk + "link set up up down ", expect=(kw, "==")),
+        dict(name="v4-10 root @goto ignored and never offered", cwd=work,
+             line=edge, expect=(root, "=="), not_in=("@goto", "@goto b")),
+        dict(name="v4-11 plain alias", cwd=work,
+             line=edge + "a ", expect=({"--bee", "--opt"}, "==")),
+        dict(name="v4-12 target that is not a node is ignored", cwd=work,
+             line=edge + "bad ", expect=({"--bad", "--opt"}, "==")),
+        dict(name="v4-13 first @goto in a section wins", cwd=work,
+             line=edge + "twice ", expect=({"--bee", "--opt"}, "==")),
+        dict(name="v4-14 self-alias stays put", cwd=work,
+             line=edge + "spin ", expect=({"--spin", "--opt"}, "==")),
+        dict(name="v4-15 alias cycle stops at the last new node", cwd=work,
+             line=edge + "c1 ", expect=({"--c2", "--opt"}, "==")),
+        dict(name="v4-16 slot jumping to its own node resets k", cwd=work,
+             # Without the jump this is #3, absent, so flags only: {--opt}.
+             line=edge + "each x y ", expect=({"one"}, "==")),
+        dict(name="v4-17 @goto in a value section: not offered", cwd=work,
+             line=edge + "--opt ", expect=({"x"}, "==")),
+        dict(name="v4-18 a flag's value never jumps", cwd=work,
+             line=edge + "--opt x ", expect=(root, "==")),
     ]
 
 
@@ -778,7 +932,9 @@ def build_docs_cases(work: Path) -> list[dict]:
         c("mig bare cluster changes nothing", mig + "-vn ",
           {"new", "up", "migrate", "down", "apply", "status", "--help"} | g_mig),
         c("mig value flag", mig + "up --steps ", {"1", "2", "5"}),
-        c("mig alias written twice", mig + "migrate --steps ", {"1", "2", "5"}),
+        c("mig alias via @goto", mig + "migrate --steps ", {"1", "2", "5"}),
+        c("mig alias offers its target's flags", mig + "migrate -",
+          {"--steps", "--to"} | g_mig),
         c("mig declared but empty", mig + "up --to ", files),
         c("mig apply files", mig + "apply ", files),
         c("mig apply files, repeated", mig + "apply alpha.txt ", files),

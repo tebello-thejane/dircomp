@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1000 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-tree-title spec-tree-desc">
-<title id="spec-tree-title">dircomp spec v3: the node tree</title>
+<title id="spec-tree-title">dircomp spec v4: the node tree</title>
 <desc id="spec-tree-desc">Tree of a docker-shaped command spec: a root node, a global section merged into every node, and run and rm nodes with flag-value and positional-slot leaves.</desc>
 <defs>
 <style>@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap');</style>

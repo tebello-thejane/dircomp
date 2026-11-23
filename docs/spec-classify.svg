@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1000 616" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-classify-title spec-classify-desc">
-<title id="spec-classify-title">dircomp spec v3: classifying the cursor word</title>
+<title id="spec-classify-title">dircomp spec v4: classifying the cursor word</title>
 <desc id="spec-classify-desc">Flowchart of how the word under the cursor is classified as a flag value, a positional slot, or a node's own names and flags.</desc>
 <defs>
 <style>@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap');</style>

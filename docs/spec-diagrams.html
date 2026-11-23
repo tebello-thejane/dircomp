@@ -58,7 +58,7 @@
 </head>
 <body>
   <div class="frame">
-    <p class="eyebrow">dircomp &middot; completion spec v3</p>
+    <p class="eyebrow">dircomp &middot; completion spec v4</p>
     <h1>dircomp in five diagrams</h1>
     <p class="lede">What happens on a TAB, the shape a <code>.completions</code> file describes, how the reader counts positional arguments, how it consumes the words before the cursor, and how it classifies the word under it. Guide: <a href="MANUAL.md">MANUAL.md</a>. Rules: <a href="../SPEC.md">SPEC.md</a>.</p>
 
@@ -119,7 +119,7 @@
       <h2>What a spec describes</h2>
       <figure>
 <svg viewBox="0 0 1000 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-tree-title spec-tree-desc">
-<title id="spec-tree-title">dircomp spec v3: the node tree</title>
+<title id="spec-tree-title">dircomp spec v4: the node tree</title>
 <desc id="spec-tree-desc">Tree of a docker-shaped command spec: a root node, a global section merged into every node, and run and rm nodes with flag-value and positional-slot leaves.</desc>
 <rect width="100%" height="100%" fill="#f4f4f4"/>
 <path d="M460 92 V140" fill="none" stroke="#616161" stroke-width="1"/>
@@ -244,9 +244,9 @@
       <p class="eyebrow">Flowchart &middot; walk</p>
       <h2>Consuming one typed word</h2>
       <figure>
-<svg viewBox="0 0 1000 744" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-walk-title spec-walk-desc">
-<title id="spec-walk-title">dircomp spec v3: walking one typed word</title>
-<desc id="spec-walk-desc">Flowchart of how the reader consumes each word before the cursor: pending flag, endopts, long or short flag, descent into a node, or positional.</desc>
+<svg viewBox="0 0 1000 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-walk-title spec-walk-desc">
+<title id="spec-walk-title">dircomp spec v4: walking one typed word</title>
+<desc id="spec-walk-desc">Flowchart of how the reader consumes each word before the cursor: pending flag, endopts, long or short flag, descent into a node, or positional; a descent or a positional then follows the section's @goto, if any.</desc>
 <defs>
 <marker id="spec-walk-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>
 <marker id="spec-walk-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#da6a07"/></marker>
@@ -260,7 +260,7 @@
 <path d="M380 368 H320" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
 <path d="M620 368 H700" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
 <path d="M620 520 H700" fill="none" stroke="#616161" stroke-width="1" marker-end="url(#spec-walk-arrow)"/>
-<path d="M620 224 H940 A8 8 0 0 1 948 232 V638 A8 8 0 0 1 940 646 H600" fill="none" stroke="#da6a07" stroke-width="1" marker-end="url(#spec-walk-arrow-accent)"/>
+<path d="M620 224 H940 A8 8 0 0 1 948 232 V646 A8 8 0 0 1 940 654 H600" fill="none" stroke="#da6a07" stroke-width="1" marker-end="url(#spec-walk-arrow-accent)"/>
 <rect x="646" y="60" width="28" height="12" rx="2" fill="#f4f4f4"/>
 <text x="660" y="69" fill="#878787" font-size="8" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
 <rect x="508" y="146" width="28" height="12" rx="2" fill="#f4f4f4"/>
@@ -309,22 +309,24 @@
 <text x="800.0" y="370.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">scan chars left to right</text>
 <text x="800.0" y="382.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">declared char takes value:</text>
 <text x="800.0" y="394.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">attached, or next word</text>
-<rect x="700" y="496" width="200" height="48" rx="6" fill="#f4f4f4"/>
-<rect x="700" y="496" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
-<text x="800.0" y="518.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
-<text x="800.0" y="534.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">path += word, k = 0</text>
-<rect x="400" y="622" width="200" height="48" rx="6" fill="#f4f4f4"/>
-<rect x="400" y="622" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
-<text x="500.0" y="644.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional</text>
-<text x="500.0" y="660.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = k + 1</text>
-<line x1="32" y1="692" x2="968" y2="692" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
-<text x="32" y="712" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
-<polygon points="128,704 136,712 128,720 120,712" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
-<text x="144" y="716" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">decision</text>
-<rect x="240" y="706" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
-<text x="264" y="716" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">step</text>
-<polygon points="348,704 356,712 348,720 340,712" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
-<text x="364" y="716" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the @endopts check</text>
+<rect x="700" y="488" width="200" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="700" y="488" width="200" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="800.0" y="512.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">descend</text>
+<text x="800.0" y="528.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">path += word, k = 0</text>
+<text x="800.0" y="540.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">then [path]'s @goto, if any</text>
+<rect x="400" y="622" width="200" height="64" rx="6" fill="#f4f4f4"/>
+<rect x="400" y="622" width="200" height="64" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="500.0" y="646.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'Roboto', system-ui, sans-serif" text-anchor="middle">positional</text>
+<text x="500.0" y="662.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">k = k + 1</text>
+<text x="500.0" y="674.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">then the slot's @goto, if any</text>
+<line x1="32" y1="708" x2="968" y2="708" stroke="rgba(45,45,59,0.12)" stroke-width="0.8"/>
+<text x="32" y="728" fill="#616161" font-size="8" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<polygon points="128,720 136,728 128,736 120,728" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="144" y="732" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">decision</text>
+<rect x="240" y="722" width="16" height="12" rx="3" fill="#ffffff" stroke="#2d2d3b" stroke-width="1"/>
+<text x="264" y="732" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">step</text>
+<polygon points="348,720 356,728 348,736 340,728" fill="rgba(218,106,7,0.08)" stroke="#da6a07" stroke-width="1"/>
+<text x="364" y="732" fill="#616161" font-size="9" font-weight="400" font-family="'Roboto', system-ui, sans-serif" text-anchor="start">the @endopts check</text>
 </svg>
         <figcaption>Run for every word before the cursor, left to right. <code>k</code> counts positionals at the current node. Descent into a subcommand is only possible while <code>k</code> is 0.</figcaption>
       </figure>
@@ -335,7 +337,7 @@
       <h2>The word under the cursor</h2>
       <figure>
 <svg viewBox="0 0 1000 616" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spec-classify-title spec-classify-desc">
-<title id="spec-classify-title">dircomp spec v3: classifying the cursor word</title>
+<title id="spec-classify-title">dircomp spec v4: classifying the cursor word</title>
 <desc id="spec-classify-desc">Flowchart of how the word under the cursor is classified as a flag value, a positional slot, or a node's own names and flags.</desc>
 <defs>
 <marker id="spec-classify-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#616161"/></marker>

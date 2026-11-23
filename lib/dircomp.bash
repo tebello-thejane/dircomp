@@ -16,14 +16,16 @@
 # candidates for a positional; [*] is merged into every node. A line @file,
 # @dir, @user or @host names a kind of candidate resolved by a fixed bash
 # builtin instead of a literal word; @endopts in a [path] ends that node's
-# flags at its first positional. '#' comments and blank lines are ignored.
+# flags at its first positional; @goto <path> in a [path] or a slot sends the
+# walk to another node once that section has taken a word (an alias, or a
+# continuation that may loop). '#' comments and blank lines are ignored.
 #
 # This file is installed verbatim by install.sh to
 # ~/.local/share/dircomp/dircomp.bash and sourced from ~/.bashrc via one
 # guarded line — see that file for the install/update/uninstall story.
 
-DIRCOMP_VERSION="0.2.2"
-DIRCOMP_SPEC_VERSION="3"   # bump only if the file grammar changes incompatibly
+DIRCOMP_VERSION="0.3.0"
+DIRCOMP_SPEC_VERSION="4"   # bump whenever the file grammar changes; SPEC.md says how
 
 # bash-completion reworked its internals in 2.12. _comp_load is the loading
 # primitive; _comp_complete_load is the `complete -D` callback that wraps
@@ -105,6 +107,8 @@ _dircomp_parse() {
     #   _DC_DECL   newline-delimited keys of every valid header, empty or not
     #   _DC_NODES  newline-delimited node paths: every prefix of every path
     #   _DC_ENDS   newline-delimited node paths whose section holds @endopts
+    #   _DC_GOTO   "<key><US><target path>" for the first @goto of each
+    #              [path] or slot section; the target is checked at walk time
     # A key is "n <path>" (a node), "f <path> <flag>" (a flag's values) or
     # "s <path> #N" / "s <path> #*" (a positional slot). <path> is the node's
     # names joined by single spaces: "" for the root, "*" for the global
@@ -122,10 +126,10 @@ _dircomp_parse() {
     # became unreachable, with nothing to say so. Inside a header, runs of
     # whitespace collapse to one space (read -a splits on them), so
     # [list  --sort] and [list --sort] are the same key.
-    local IFS=$' \t\n' line tok last acc kind key path valid n fd
+    local IFS=$' \t\n' line tok last acc kind key path valid n fd gkeys=$'\n'
     local cur_key="n " cur_kind=n cur_path=""
-    local -a toks ptoks
-    _DC_LINES=()
+    local -a toks ptoks gt
+    _DC_LINES=() _DC_GOTO=()
     _DC_DECL=$'\n' _DC_NODES=$'\n' _DC_ENDS=$'\n'
     { exec {fd}<"$1"; } 2>/dev/null || return 1
     while IFS= read -r -u "$fd" line || [[ -n $line ]]; do
@@ -178,6 +182,19 @@ _dircomp_parse() {
             _DC_ENDS+="$cur_path"$'\n'
             continue
         fi
+        # @goto is a directive too, never a candidate. It is read in a
+        # [path] other than the root and [*], and in a slot; elsewhere it is
+        # dropped. Only the first in a section counts. Its path is spec text,
+        # but it is only ever compared against the file's own node paths.
+        if [[ $line == "@goto" || $line == "@goto"[[:space:]]* ]]; then
+            if [[ ( $cur_kind == n && -n $cur_path && $cur_path != "*" ) || $cur_kind == s ]] &&
+                [[ $gkeys != *$'\n'"$cur_key"$'\n'* ]]; then
+                read -ra gt <<<"$line"
+                _DC_GOTO+=("$cur_key$_DIRCOMP_US${gt[*]:1}")
+                gkeys+="$cur_key"$'\n'
+            fi
+            continue
+        fi
         _DC_LINES+=("$cur_key$_DIRCOMP_US$line")
     done
     exec {fd}<&-
@@ -192,6 +209,46 @@ _dircomp_has() {
 _dircomp_takes_value() {
     # Does flag $2 take a value at node $1? Node-specific or global.
     _dircomp_has "f $1 $2" || _dircomp_has "f * $2"
+}
+
+_dircomp_target() {
+    # Set _DC_T to the @goto target of section key $1. Fail when the section
+    # has none, or its target is neither the root nor a node: a typo costs
+    # candidates and moves the walk nowhere.
+    local e
+    for e in "${_DC_GOTO[@]}"; do
+        [[ $e == "$1$_DIRCOMP_US"* ]] || continue
+        _DC_T=${e#*"$_DIRCOMP_US"}
+        [[ -z $_DC_T || $_DC_NODES == *$'\n'"$_DC_T"$'\n'* ]]
+        return
+    done
+    return 1
+}
+
+_dircomp_jump() {
+    # Section $1 just took a word; follow its @goto, if any, by setting the
+    # caller's P and k. Landing on an alias follows that alias too. $2 is the
+    # alias the word descended into, if that is how we got here, and counts
+    # as already visited. A target already visited ends the chain, so each
+    # word costs at most one hop per node and no spec can make TAB loop.
+    (( ${#_DC_GOTO[@]} )) || return 0
+    local _DC_T seen=$'\n'
+    [[ -n $2 ]] && seen+="$2"$'\n'
+    _dircomp_target "$1" || return 0
+    while [[ $seen != *$'\n'"$_DC_T"$'\n'* ]]; do
+        P=$_DC_T k=0
+        seen+="$P"$'\n'
+        _dircomp_target "n $P" || break
+    done
+}
+
+_dircomp_slot_jump() {
+    # A positional was just counted at P: jump if the slot that took it,
+    # [P #k] if declared, else [P #*], holds a @goto.
+    (( ${#_DC_GOTO[@]} )) || return 0
+    local key="s $P #$k"
+    _dircomp_has "$key" || key="s $P #*"
+    _dircomp_jump "$key" ""
 }
 
 _dircomp_words() {
@@ -259,7 +316,7 @@ _dircomp_offer() {
 
 _dircomp() {
     local spec _DC_DECL _DC_NODES _DC_ENDS
-    local -a _DC_LINES _DC_W
+    local -a _DC_LINES _DC_W _DC_GOTO
     spec=$(_dircomp_find "${COMP_WORDS[0]}") || { "$_DIRCOMP_MINIMAL" "$@"; return; }
     _dircomp_parse "$spec" || { "$_DIRCOMP_MINIMAL" "$@"; return; }
     _dircomp_words
@@ -275,7 +332,9 @@ _dircomp() {
         # A pending flag takes the next word whatever it looks like.
         if [[ -n $pending ]]; then pending=""; continue; fi
         # @endopts: from the node's first positional on, even -x is a positional.
-        if (( k >= 1 )) && [[ $_DC_ENDS == *$'\n'"$P"$'\n'* ]]; then (( k++ )); continue; fi
+        if (( k >= 1 )) && [[ $_DC_ENDS == *$'\n'"$P"$'\n'* ]]; then
+            (( k++ )); _dircomp_slot_jump; continue
+        fi
         case $w in
             --?*)
                 # --flag=value carries its value; nothing more is consumed
@@ -295,12 +354,15 @@ _dircomp() {
                     fi
                 done ;;
             *)
-                # Descent only before the node's first positional.
+                # Descent only before the node's first positional. Either
+                # way the section that took the word may jump elsewhere.
                 nxt=${P:+$P }$w
                 if (( k == 0 )) && [[ $_DC_NODES == *$'\n'"$nxt"$'\n'* ]]; then
                     P=$nxt
+                    _dircomp_jump "n $P" "$P"
                 else
                     (( k++ ))
+                    _dircomp_slot_jump
                 fi ;;
         esac
     done

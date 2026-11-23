@@ -1,4 +1,4 @@
-# dircomp completion spec — format v3
+# dircomp completion spec — format v4
 
 A spec file lives at `<project>/.completions/<command>` and is plain text,
 never executed. On every TAB press the reader resolves the command word to
@@ -11,8 +11,11 @@ anywhere, a symlink to it, or bare `tally` when `bin/` is on PATH all read
 
 The target shape is a docker-style command line: `prog [global flags]
 [command…] [command flags] [arguments]`. A spec is a lookup table over that
-shape, not a grammar: no recursion, no alternation, no repetition, no rule
-names.
+shape plus jumps between its nodes. That makes it a finite-state machine over
+words, not a grammar: a jump back to an earlier node repeats, a jump across
+to another branch shares. A node may lead back to itself, but only as its
+last step: there is no nesting, where the walk would enter a node and later
+resume where it was, and there are no rule names.
 
 ## Shape
 
@@ -64,6 +67,7 @@ word                          — a candidate at the root node (before any secti
 @user                         — login names
 @host                         — hostnames (from HOSTFILE or /etc/hosts)
 @endopts                      — in [path]: flags end at the first positional
+@goto path                    — in [path], [path #N] or [path #*]: continue at node path
 ```
 
 `path` is zero or more subcommand names separated by spaces: `[remote]`,
@@ -122,6 +126,9 @@ marks the node's flags as ending at the node's first positional: from then on
 every word at that node is a positional, including words that start with
 `-`. That is how `docker run IMAGE --foo` hands `--foo` to the container. It
 ends global flags too.
+
+**`@goto` is a directive too.** Neither it nor `@endopts` is ever offered as
+a candidate, in any section. *Jumps* below defines it.
 
 When no candidate in the relevant section matches, completion falls back to
 bash's own, which is normally filenames. A command does not lose ordinary
@@ -193,6 +200,12 @@ each word, the first rule that applies wins:
    positional at a node. `k` resets to 0 at the new node.
 4. **Any other bare word** is a positional: `k` increases by one.
 
+After rule 3 or a positional (rules 0 and 4), the walk checks the section
+that took the word for `@goto`: `[P]` after a descent; after a positional,
+the slot, which is `[P #k]` if that header exists, else `[P #*]`. If that
+section holds a `@goto`, the walk jumps: `P` becomes its target and `k`
+resets to 0. A flag, or a word taken as a flag's value, never jumps.
+
 ```mermaid
 flowchart TD
   W["next word"] --> P{"flag pending?"}
@@ -208,6 +221,9 @@ flowchart TD
   L -->|"bare word"| N{"k = 0 and node exists?"}
   N -->|yes| DESC["descend, k = 0"]
   N -->|no| POS
+  DESC --> G{"section holds @goto?"}
+  POS --> G
+  G -->|yes| JMP["P = target, k = 0"]
 ```
 
 ![Walking one typed word: pending flag, @endopts, long or short flag, descent, or positional](docs/spec-walk.svg)
@@ -228,7 +244,9 @@ Then the word being completed is classified, in this order:
 2. **Positional.** Flags have ended (rule 0 applies to this word), or the word
    does not start with `-`, and in the second case a slot exists. The slot is
    `[P #N]` for `N` = `k` + 1, else `[P #*]`. Candidates are that section
-   alone: flags and subcommand names are not offered there. With flags ended
+   alone, without directives: flags and subcommand names are not offered
+   there. A `@goto` in the slot does not change this word's candidates; it
+   moves the walk only once the word is complete. With flags ended
    and no slot, there are no candidates. Before the first positional, typing
    `-` reaches the node case below.
 3. **Node.** Candidates are `[P]` plus `[*]`, without directives. Once `k` ≥ 1,
@@ -245,6 +263,46 @@ flowchart TD
 ```
 
 ![Classifying the word under the cursor: value, slot, or node](docs/spec-classify.svg)
+
+## Jumps
+
+`@goto path` sends the walk to another node once its section has taken a
+word. `path` is zero or more names, written as in a header, and whitespace
+runs collapse the same way. `@goto` with no names targets the root.
+
+| Section holding `@goto` | Jumps after | Use |
+| --- | --- | --- |
+| `[path]` | the word that descended into `path` | alias: the node is its target |
+| `[path #N]`, `[path #*]` | the positional that slot took | continuation: carry on at another node; an ancestor makes a loop |
+| `[*]`, the unheaded root, any flag value section | never: the line is ignored | |
+
+- **The target must be a node**: the root, or a path some header's tokens
+  begin with, as rule 3 requires for descent. Otherwise the line is
+  ignored, so a typo costs candidates, as an unknown `@kind` does, and moves
+  the walk nowhere unexpected.
+- **One `@goto` per section.** The first in file order counts, after
+  same-key sections are concatenated; later ones are ignored.
+- **A jump lands clean**: `k` = 0, no pending flag. A target holding
+  `@endopts` ends flags at its own first positional, not at once.
+- **Aliases chain, cycles stop.** Landing on a node whose `[path]` holds a
+  `@goto` follows that one too. The chain stops at the first node with no
+  `@goto`, or at the first node whose `@goto` names a node already in the
+  chain. After a descent the chain starts with the alias descended into;
+  after a positional it starts empty, so a slot may jump to its own node and
+  every positional there begins the node afresh. Each word therefore costs at
+  most one hop per node in the file, and no spec can make TAB loop.
+- **An alias node holds nothing else.** The walk does not rest at an alias,
+  so its other lines and every section under its path (`[path --flag]`,
+  `[path #1]`, `[path name]`) are unused, unless a cycle of aliases leaves
+  the walk there.
+- **No spec text runs.** A `@goto` path is compared against the file's own
+  headers and nothing else. Like a literal, it never reaches the shell, and
+  a jump only changes `P` and `k`.
+
+A jump has no return. A jump back to an ancestor is recursion in the tail
+position only, which is no more than a loop. The walk cannot enter a node,
+finish there, and resume where it was: that is nesting, and v4 does not have
+it (see *Known limits*).
 
 ## Examples
 
@@ -380,7 +438,114 @@ unless-stopped
 real `docker` spec would never be read. These are tests of the shape, run
 against a command named `dock` in `test/tab.py`.)
 
-## Changes from v2
+### An alias
+
+`docker container ls` is `docker ps` under a second name. In v3 the two are
+written out twice; in v4 the second points at the first.
+
+```
+ps
+container
+
+[ps]
+--all
+--format
+-a
+-q
+
+[ps --format]
+json
+table
+
+[container]
+ls
+
+[container ls]
+@goto ps
+```
+
+![The alias spec as a tree of nodes](docs/specs/dk.svg)
+
+| typed | offered |
+| --- | --- |
+| `docker container <TAB>` | `ls` |
+| `docker container ls -<TAB>` | `--all --format -a -q`: the walk descended into `container ls` and jumped to `ps` |
+| `docker container ls --format <TAB>` | `json table`: `--format` is looked up at `[ps]`, where the walk now is |
+
+### A loop
+
+`ip link set dev eth0 mtu 9000 up` is a list of keywords in any order,
+some taking one value. A v3 node stops descending at its first positional,
+so after `eth0` it offers flags only. In v4 each value slot jumps back to
+`[link set]`, and so does each keyword that takes no value.
+
+```
+link
+
+[link]
+set
+
+[link set]
+dev
+mtu
+up
+down
+
+[link set dev #1]
+@goto link set
+
+[link set mtu #1]
+1500
+9000
+@goto link set
+
+[link set up]
+@goto link set
+
+[link set down]
+@goto link set
+```
+
+![The loop spec as a tree of nodes](docs/specs/lnk.svg)
+
+| typed | offered |
+| --- | --- |
+| `ip link set <TAB>` | `dev mtu up down` |
+| `ip link set dev <TAB>` | nothing from the spec: `[link set dev #1]` holds only a directive, so the name is free text |
+| `ip link set dev eth0 <TAB>` | `dev mtu up down`: `eth0` filled `#1`, whose `@goto` returned the walk to `[link set]` with `k` = 0 |
+| `ip link set dev eth0 mtu <TAB>` | `1500 9000` |
+| `ip link set dev eth0 mtu 9000 up <TAB>` | `dev mtu up down`: `up` descended into an alias for `[link set]` |
+
+The loop does not stop a keyword repeating: `ip link set up up` is accepted
+and offered the same list. Like every spec, this one proposes candidates
+and never rejects a line.
+
+(Both specs run in `test/tab.py` as commands named `dk` and `lnk`, since
+bash-completion ships its own completion for `ip`, which would load first.
+`edge` there covers the rules above: a root or value-section `@goto`, a
+bad target, two `@goto` lines, a self-alias, an alias cycle, and a slot
+jumping to its own node.)
+
+## Changes from v3
+
+- `@goto path` added, in `[path]` (alias) and in `[path #N]` / `[path #*]`
+  (continuation). A v3 reader skips it as an unknown `@` line.
+- Nothing else changed. Every v3 file reads the same under v4: a `@goto`
+  line was already skipped, and a literal starting with `@` was never
+  expressible.
+
+### Forward compatibility
+
+A v3 reader on a v4 file treats an alias as an empty node and never jumps
+after a slot: at `ip link set dev eth0 <TAB>` it stays at `[link set dev]`
+with `k` = 1 and offers dash lines only. That is fewer candidates, not wrong
+ones, with one exception. If the node that owns a continuation slot also
+has a `#*` or a higher `#N`, a v3 reader counts the words after the jump as
+that node's positionals and offers those slots in the wrong place. Keep
+alias nodes empty apart from `@goto`, and give a node with a continuation
+slot no further slots, and the file degrades cleanly.
+
+## Changes from v2 to v3
 
 - Nesting is arbitrary: `[remote add --track]`. v2 stopped at `[sub --flag]`.
 - `[path #N]` and `[path #*]` sections added. Under v2, `[add #1]` was a
@@ -406,7 +571,7 @@ against a command named `dock` in `test/tab.py`.)
   `@kind` lines, and a project spec never overriding a completion
   bash-completion already knows for the same command name.
 
-### Forward compatibility is not clean
+### Forward compatibility from v2 is not clean
 
 A v2 reader (dircomp 0.2.2 and earlier) on a v3 file does not merely offer
 fewer candidates. It takes `COMP_WORDS[1]` as the section, so at `tally remote
@@ -415,24 +580,30 @@ that position. Any v3 file using depth of two or more, `#N`, `#*`, `@endopts`
 or `[*]` gives v2 readers wrong candidates rather than missing ones. Nothing
 in the file lets a v2 reader detect this.
 
-## Known limits (v3)
+## Known limits (v4)
 
 - **No dynamic candidates.** Docker's own completion is mostly container,
-  image and network names. v3 offers commands, flags and fixed value sets such
+  image and network names. v4 offers commands, flags and fixed value sets such
   as `--restart`, not those names: no `@lines <path>`, no `$(...)`, by design.
 - **Every value-taking flag needs a header**, even an empty one, or its value
   is counted as a positional and `k` drifts. `docker run --help` in docker
   29.5.3 has 98 flag lines by `grep -cE '^ +(-[a-zA-Z], )?--'`.
-- **No aliases or includes.** `docker ps` and `docker container ls` are two
-  sections written out twice.
+- **Aliases share a whole node, not part of one.** There are no includes:
+  two nodes that share some flags but not others still list the shared ones
+  twice.
+- **A flag's value cannot jump.** `iptables -m tcp --dport`, where an
+  earlier flag's value enables later flags, cannot be written.
 - **No single-dash long options.** A single-dash flag is exactly one
   character.
 - No `--` end-of-options marker: a lone `--` is a bare flag.
 - `@endopts` is per node and ends global flags too; there is no way to end
   only the node's own.
-- No alternation, repetition or recursion, and no way to say "either this flag
-  or that one". Those need a rule syntax and a parser that matches typed words
-  against rules; this format has neither.
+- **No nesting.** A jump has no return, so a nested sub-language such as
+  `find`'s `\( … -o … \)` or `test`'s nested expressions cannot be written.
+  That needs rule names, a stack, and a parser whose cost per TAB is bounded
+  even for a hostile or ambiguous spec (Earley-style, cubic in the words
+  typed); this format has none of them. There is also no way to say
+  "either this flag or that one".
 - `@file` and `@dir` do not expand `~` or unquote the word being typed;
   they see it as bash's `compgen` does. Sections containing them are
   completed with readline's filename rules for the whole section, so a
@@ -442,6 +613,8 @@ in the file lets a v2 reader detect this.
   upward. There is no warning, because a completion handler has nowhere to
   put one without corrupting the line being edited.
 
-Report a v4 need against the version in `lib/dircomp.bash`
-(`DIRCOMP_SPEC_VERSION`) rather than hand-extending the grammar informally —
-that field exists so a future reader can tell which grammar a file assumes.
+Report a v5 need against the version in `lib/dircomp.bash`
+(`DIRCOMP_SPEC_VERSION`) rather than hand-extending the grammar informally.
+That field names the grammar the installed reader implements. A spec file
+does not declare its version, so the *Changes from* sections above are what
+say how an older file reads under a newer reader, and the reverse.

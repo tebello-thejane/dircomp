@@ -115,4 +115,7 @@ DIRCOMP_LOCAL_SOURCE=1 ./install.sh     # installs from the local checkout, no c
 
 `lib/dircomp.bash` carries two version numbers: `DIRCOMP_VERSION`, the
 library release, and `DIRCOMP_SPEC_VERSION`, the `.completions` file
-grammar. The spec version only moves on a breaking grammar change.
+grammar. The spec version moves whenever the grammar changes, and
+[SPEC.md](SPEC.md)'s *Changes from* sections say how a file written for one
+version reads under a reader of another. A spec file does not declare its
+version.
