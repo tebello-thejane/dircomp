@@ -1262,8 +1262,6 @@ py
 [new #1]
 
 # --- mig up, and its alias migrate ---------------------------------------
-# The format has no aliases, so `migrate` is `up` written out a second time.
-# Keep the two sections together so they stay equal.
 [up]
 --steps
 --to
@@ -1276,16 +1274,10 @@ py
 # Versions are dynamic: declared, nothing to offer.
 [up --to]
 
+# migrate is an alias: once the walk descends into it, it carries on at
+# [up], so up's flags and values are written once and cannot drift apart.
 [migrate]
---steps
---to
-
-[migrate --steps]
-1
-2
-5
-
-[migrate --to]
+@goto up
 
 # --- mig down ----------------------------------------------------------------
 [down]
@@ -1320,6 +1312,7 @@ json
 | `mig -vn ` | the same list: `-v` and `-n` are bare flags and change nothing |
 | `mig up --steps ` | `1 2 5` |
 | `mig migrate --steps ` | `1 2 5` |
+| `mig migrate -` | `--steps --to --env --dir -v -n`: `[up]`'s flags |
 | `mig up --to ` | files (declared, nothing fixed to offer) |
 | `mig apply ` | files |
 | `mig apply alpha.txt ` | files (`#*` repeats) |
@@ -1328,8 +1321,9 @@ json
 
 Worth noticing:
 
-- There are no aliases in the format. `[migrate]` repeats `[up]` line for
-  line. Keep the two sections side by side so they stay equal.
+- `[migrate]` holds one line, `@goto up`. Once the walk descends into
+  `migrate` it carries on at `[up]`, so `--steps` and `--to` are looked up
+  there and written only once.
 - `mig down -vn --steps 2 ` is back at the node: the cluster was two bare
   flags, and `2` went to `--steps`.
 
@@ -1348,6 +1342,8 @@ word                       candidate at the root (before any header)
 
 @file  @dir  @user  @host  candidate kinds, fixed
 @endopts                   in [path]: flags end at the first positional
+@goto path                 in [path]: an alias of path; in [path #N] or
+                           [path #*]: carry on at path after that word
 ```
 
 - A flag that takes a value needs a header, even an empty one.

@@ -31,7 +31,7 @@
 <rect x="320" y="236" width="200" height="52" rx="6" fill="#f4f4f4"/>
 <rect x="320" y="236" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
 <text x="420.0" y="260.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[migrate]</text>
-<text x="420.0" y="276.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">--steps --to</text>
+<text x="420.0" y="276.0" fill="#616161" font-size="9" font-weight="400" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">alias: @goto [up]</text>
 <rect x="320" y="304" width="200" height="52" rx="6" fill="#f4f4f4"/>
 <rect x="320" y="304" width="200" height="52" rx="6" fill="#ffffff" stroke="#2d2d3b" stroke-width="0.8"/>
 <text x="420.0" y="328.0" fill="#2d2d3b" font-size="12" font-weight="500" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">[down]</text>

@@ -50,8 +50,6 @@ py
 [new #1]
 
 # --- mig up, and its alias migrate ---------------------------------------
-# The format has no aliases, so `migrate` is `up` written out a second time.
-# Keep the two sections together so they stay equal.
 [up]
 --steps
 --to
@@ -64,16 +62,10 @@ py
 # Versions are dynamic: declared, nothing to offer.
 [up --to]
 
+# migrate is an alias: once the walk descends into it, it carries on at
+# [up], so up's flags and values are written once and cannot drift apart.
 [migrate]
---steps
---to
-
-[migrate --steps]
-1
-2
-5
-
-[migrate --to]
+@goto up
 
 # --- mig down ----------------------------------------------------------------
 [down]
