@@ -117,5 +117,6 @@ DIRCOMP_LOCAL_SOURCE=1 ./install.sh     # installs from the local checkout, no c
 library release, and `DIRCOMP_SPEC_VERSION`, the `.completions` file
 grammar. The spec version moves whenever the grammar changes, and
 [SPEC.md](SPEC.md)'s *Changes from* sections say how a file written for one
-version reads under a reader of another. A spec file does not declare its
-version.
+version reads under a reader of another. A spec file may declare the
+format it was written for with `@spec N`; a reader older than `N` then
+leaves the command to bash's own completion instead of misreading the file.

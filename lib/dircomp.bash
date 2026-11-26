@@ -18,7 +18,8 @@
 # builtin instead of a literal word; @endopts in a [path] ends that node's
 # flags at its first positional; @goto <path> in a [path] or a slot sends the
 # walk to another node once that section has taken a word (an alias, or a
-# continuation that may loop). '#' comments and blank lines are ignored.
+# continuation that may loop). @spec N before the first header names the
+# format the file was written for. '#' comments and blank lines are ignored.
 #
 # This file is installed verbatim by install.sh to
 # ~/.local/share/dircomp/dircomp.bash and sourced from ~/.bashrc via one
@@ -127,7 +128,7 @@ _dircomp_parse() {
     # whitespace collapse to one space (read -a splits on them), so
     # [list  --sort] and [list --sort] are the same key.
     local IFS=$' \t\n' line tok last acc kind key path valid n fd gkeys=$'\n'
-    local cur_key="n " cur_kind=n cur_path=""
+    local cur_key="n " cur_kind=n cur_path="" head=1 specv=""
     local -a toks ptoks gt
     _DC_LINES=() _DC_GOTO=()
     _DC_DECL=$'\n' _DC_NODES=$'\n' _DC_ENDS=$'\n'
@@ -136,7 +137,21 @@ _dircomp_parse() {
         line=${line#"${line%%[![:space:]]*}"}
         line=${line%"${line##*[![:space:]]}"}
         [[ -z $line || $line == "#"* ]] && continue
+        # @spec N, read only before the first header, declares the format the
+        # file was written for; the first counts. A file for a newer format
+        # than this reader is not read at all: the caller falls back to
+        # bash's own completion rather than offer what an older grammar makes
+        # of a newer file. A malformed or misplaced @spec is dropped.
+        if [[ $line == "@spec" || $line == "@spec"[[:space:]]* ]]; then
+            read -ra toks <<<"$line"
+            if (( head )) && [[ -z $specv && ${#toks[@]} == 2 && ${toks[1]} =~ ^[0-9]{1,6}$ ]]; then
+                specv=$(( 10#${toks[1]} ))
+                if (( specv > DIRCOMP_SPEC_VERSION )); then exec {fd}<&-; return 1; fi
+            fi
+            continue
+        fi
         if [[ $line == "["*"]" ]]; then
+            head=0
             read -ra toks <<<"${line:1:${#line}-2}"
             n=${#toks[@]} kind=n last=""
             ptoks=("${toks[@]}")

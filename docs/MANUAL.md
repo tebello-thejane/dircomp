@@ -1344,6 +1344,8 @@ word                       candidate at the root (before any header)
 @endopts                   in [path]: flags end at the first positional
 @goto path                 in [path]: an alias of path; in [path #N] or
                            [path #*]: carry on at path after that word
+@spec N                    before any header: written for format N; an
+                           older reader ignores the file
 ```
 
 - A flag that takes a value needs a header, even an empty one.

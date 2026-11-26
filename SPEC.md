@@ -68,6 +68,7 @@ word                          — a candidate at the root node (before any secti
 @host                         — hostnames (from HOSTFILE or /etc/hosts)
 @endopts                      — in [path]: flags end at the first positional
 @goto path                    — in [path], [path #N] or [path #*]: continue at node path
+@spec N                       — before the first header: the format the file is written for
 ```
 
 `path` is zero or more subcommand names separated by spaces: `[remote]`,
@@ -129,6 +130,17 @@ ends global flags too.
 
 **`@goto` is a directive too.** Neither it nor `@endopts` is ever offered as
 a candidate, in any section. *Jumps* below defines it.
+
+**`@spec N` declares the format.** `N` is the format version the file is
+written for, in decimal: `@spec 4`. It is optional and read only before the
+first header; the first one counts, and a second one, one after a header, or
+one whose `N` is not a plain number is dropped. It is never a candidate. A
+reader whose own version (`DIRCOMP_SPEC_VERSION`) is lower than `N` does not
+read the file at all: completion falls back to bash's own, as if there were
+no spec, rather than offer what an older grammar makes of a newer file. A
+reader at `N` or above reads the file normally, and so does every reader when
+there is no `@spec`. A reader from before v4 does not know `@spec` and skips
+it as an unknown `@` line.
 
 When no candidate in the relevant section matches, completion falls back to
 bash's own, which is normally filenames. A command does not lose ordinary
@@ -530,9 +542,11 @@ jumping to its own node.)
 
 - `@goto path` added, in `[path]` (alias) and in `[path #N]` / `[path #*]`
   (continuation). A v3 reader skips it as an unknown `@` line.
-- Nothing else changed. Every v3 file reads the same under v4: a `@goto`
-  line was already skipped, and a literal starting with `@` was never
-  expressible.
+- `@spec N` added. A v4 or later reader ignores a file declaring a newer
+  format than its own; a v3 reader skips the line.
+- Nothing else changed. Every v3 file reads the same under v4: a `@goto` or
+  `@spec` line was already skipped, and a literal starting with `@` was
+  never expressible.
 
 ### Forward compatibility
 
@@ -544,6 +558,10 @@ has a `#*` or a higher `#N`, a v3 reader counts the words after the jump as
 that node's positionals and offers those slots in the wrong place. Keep
 alias nodes empty apart from `@goto`, and give a node with a continuation
 slot no further slots, and the file degrades cleanly.
+
+`@spec 4` does not protect against a v3 reader, which predates it. It
+protects later files: a v4 reader ignores a file marked `@spec 5` instead of
+misreading it, which is the failure the v2 to v3 change could not prevent.
 
 ## Changes from v2 to v3
 
@@ -615,6 +633,6 @@ in the file lets a v2 reader detect this.
 
 Report a v5 need against the version in `lib/dircomp.bash`
 (`DIRCOMP_SPEC_VERSION`) rather than hand-extending the grammar informally.
-That field names the grammar the installed reader implements. A spec file
-does not declare its version, so the *Changes from* sections above are what
+That field names the grammar the installed reader implements; a file names
+the one it was written for with `@spec N`. The *Changes from* sections above
 say how an older file reads under a newer reader, and the reverse.

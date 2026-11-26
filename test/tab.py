@@ -323,6 +323,25 @@ one
 @goto each
 """
 
+# @spec: a file for a newer format than the reader is not read at all; one
+# for this format or older is read normally. A second @spec, and one after a
+# header, are dropped and never offered.
+SPEC_VNEW = """\
+@spec 99
+nope
+"""
+
+SPEC_VOLD = """\
+@spec 3
+@spec 99
+hello
+sub
+
+[sub]
+@spec 99
+--in-sub
+"""
+
 NATIVE_FOO = """\
 _foo() { COMPREPLY=(native1); }
 complete -F _foo foo
@@ -370,6 +389,8 @@ def build_fixture(root: Path) -> None:
         ("dk", SPEC_DK),
         ("lnk", SPEC_LNK),
         ("edge", SPEC_EDGE),
+        ("vnew", SPEC_VNEW),
+        ("vold", SPEC_VOLD),
     ):
         script = compl / "bin" / name
         script.write_text("#!/bin/sh\n")
@@ -817,6 +838,13 @@ def build_v4_cases(work: Path) -> list[dict]:
              line=edge + "--opt ", expect=({"x"}, "==")),
         dict(name="v4-18 a flag's value never jumps", cwd=work,
              line=edge + "--opt x ", expect=(root, "==")),
+        dict(name="v4-19 @spec newer than the reader: file ignored, filenames", cwd=work,
+             line="../compl/bin/vnew ", expect=(files, "=="), not_in=("nope",)),
+        dict(name="v4-20 @spec older than the reader: read normally", cwd=work,
+             line="../compl/bin/vold ", expect=({"hello", "sub"}, "=="),
+             not_in=("@spec",)),
+        dict(name="v4-21 second @spec and @spec after a header are dropped", cwd=work,
+             line="../compl/bin/vold sub ", expect=({"--in-sub"}, "==")),
     ]
 
 
